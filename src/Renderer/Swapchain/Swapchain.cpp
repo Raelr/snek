@@ -65,8 +65,8 @@ namespace SnekVk
     {
         SwapChainSupportDetails::SwapChainSupportDetails details = device.GetSwapChainSupport();
 
-        VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(details.formats, details.availableFormatCount);
-        VkPresentModeKHR presentMode = ChoosePresentMode(details.presentModes, details.availablePresentModeCount);
+        VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(details.formats.Data(), static_cast<u32>(details.formats.Size()));
+        VkPresentModeKHR presentMode = ChoosePresentMode(details.presentModes.Data(), static_cast<u32>(details.presentModes.Size()));
         VkExtent2D extent = ChooseSwapExtent(details.capabilities);
 
         std::cout << "Extent: " << extent.width << "x" << extent.height << std::endl;
@@ -124,8 +124,6 @@ namespace SnekVk
         this->imageCount = imageCount;
         swapChainImageFormat = surfaceFormat.format;
         swapChainExtent = extent;
-
-        SwapChainSupportDetails::DestroySwapChainSupportDetails(details);
     }
 
     void SwapChain::CreateImageViews()
