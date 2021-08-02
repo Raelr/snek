@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Utils/Array.h"
+
 #include <vulkan/vulkan.h>
 #include <iostream>
 #include <cstdint>
