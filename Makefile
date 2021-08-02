@@ -8,7 +8,7 @@ sources := $(call rwildcard,src/,*.cpp)
 objects := $(patsubst src/%, $(buildDir)/%, $(patsubst %.cpp, %.o, $(sources)))
 depends := $(patsubst %.o, %.d, $(objects))
 
-includes := -I vendor/glfw/include -I $(VULKAN_SDK)/include
+includes := -I vendor/glfw/include -I $(VULKAN_SDK)/include -I vendor/glm
 linkFlags = -L lib/$(platform) -lglfw3
 compileFlags := -std=c++17 $(includes)
 
