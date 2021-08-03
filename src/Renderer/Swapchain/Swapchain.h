@@ -16,7 +16,7 @@ namespace SnekVk
         ~SwapChain();
 
         SwapChain(const SwapChain&) = delete;
-        void operator=(const SwapChain*) = delete;
+        SwapChain& operator=(const SwapChain*) = delete;
 
         // Getters
 
