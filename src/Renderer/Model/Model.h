@@ -15,9 +15,10 @@ namespace SnekVk
         struct Vertex
         {
             glm::vec2 position;
+            glm::vec3 color;
 
             static std::array<VkVertexInputBindingDescription, 1> GetBindingDescriptions();
-            static std::array<VkVertexInputAttributeDescription, 1> GetAttributeDescriptions();
+            static std::array<VkVertexInputAttributeDescription, 2> GetAttributeDescriptions();
         };
 
         Model(VulkanDevice& device, const Vertex* vertices, u32 vertexCount);
