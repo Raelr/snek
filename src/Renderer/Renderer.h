@@ -5,6 +5,8 @@
 #include "Pipeline/Pipeline.h"
 #include "Model/Model.h"
 
+#include <vector>
+
 namespace SnekVk 
 {
     class Renderer
@@ -13,8 +15,8 @@ namespace SnekVk
             Renderer(SnekVk::Window& window);
             ~Renderer();
 
-            void SubmitModel(Model& model);
-            void CreateCommandBuffers(Pipeline& pipeline, Model& model);
+            void SubmitModel(Model* model);
+            void CreateCommandBuffers(Pipeline& pipeline);
             void DrawFrame();
 
             VulkanDevice& GetDevice() { return device; }
@@ -26,9 +28,16 @@ namespace SnekVk
         private:
             
             static VkCommandBuffer* commandBuffers;
+            void RecordCommandBuffer(int imageIndex);
+            void RecreateSwapChain();
+            PipelineConfigInfo CreateDefaultPipelineConfig();
+
+            SnekVk::Window& window;
             
             VulkanDevice device;
             SwapChain swapChain;
+
+            std::vector<Model*> models;
 
             VkPipelineLayout pipelineLayout;
             Pipeline graphicsPipeline{CreateGraphicsPipeline()};

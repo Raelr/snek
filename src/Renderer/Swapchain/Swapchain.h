@@ -36,6 +36,9 @@ namespace SnekVk
         VkResult AcquireNextImage(u32* imageIndex);
         VkResult SubmitCommandBuffers(const VkCommandBuffer* buffers, u32* imageIndex);
 
+        void ClearSwapChain();
+        void RecreateSwapchain();
+
         private:
         
         void CreateSwapChain();

@@ -17,6 +17,11 @@ namespace SnekVk
 
     SwapChain::~SwapChain() 
     {
+        ClearSwapChain();
+    }
+
+    void SwapChain::ClearSwapChain()
+    {
         u32 imageCount = GetImageCount(); 
         for (u32 i = 0; i < imageCount; i++)
         {
@@ -59,6 +64,20 @@ namespace SnekVk
         }
 
         delete [] imagesInFlight;
+    }
+
+    void SwapChain::RecreateSwapchain()
+    {
+        // Destroy all Vulkan structs
+        ClearSwapChain();
+
+        // Re-create all Vulkan structs
+        CreateSwapChain();
+        CreateImageViews();
+        CreateRenderPass();
+        CreateDepthResources();
+        CreateFrameBuffers();
+        CreateSyncObjects();
     }
 
     void SwapChain::CreateSwapChain()
