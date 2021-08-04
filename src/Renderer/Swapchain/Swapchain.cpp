@@ -13,6 +13,7 @@ namespace SnekVk
     SwapChain::~SwapChain() 
     {
         ClearSwapChain();
+        ClearMemory();
     }
 
     void SwapChain::ClearSwapChain(bool isRecreated)
@@ -22,8 +23,6 @@ namespace SnekVk
         {
             vkDestroyImageView(device.Device(), swapChainImageViews[i], nullptr);
         }
-
-        delete [] swapChainImageViews;
 
         if (!isRecreated && swapChain != nullptr)
         {
@@ -39,16 +38,10 @@ namespace SnekVk
             vkFreeMemory(device.Device(), depthImageMemorys[i], nullptr);
         }
 
-        delete [] depthImageViews;
-        delete [] depthImages;
-        delete [] depthImageMemorys;
-
         for (size_t i = 0; i < imageCount; i++)
         {
             vkDestroyFramebuffer(device.Device(), swapChainFrameBuffers[i], nullptr);
         }
-
-        delete [] swapChainFrameBuffers;
 
         vkDestroyRenderPass(device.Device(), renderPass, nullptr);
         
@@ -58,8 +51,31 @@ namespace SnekVk
             vkDestroySemaphore(device.Device(), imageAvailableSemaphores[i], nullptr);
             vkDestroyFence(device.Device(), inFlightFences[i], nullptr);
         }
+    }
 
+    void SwapChain::ClearMemory()
+    {
+        // De-allocate arrays
+        delete [] swapChainImageViews; 
+
+        delete [] depthImageViews;
+        delete [] depthImages;
+        delete [] depthImageMemorys;
+
+        delete [] swapChainFrameBuffers;
+        
         delete [] imagesInFlight;
+
+        // Set values to nullptr
+        swapChainImageViews = nullptr;  
+
+        depthImageViews = nullptr; 
+        depthImages = nullptr; 
+        depthImageMemorys = nullptr; 
+
+        swapChainFrameBuffers = nullptr;
+
+        imagesInFlight = nullptr;
     }
 
     void SwapChain::RecreateSwapchain()
@@ -69,6 +85,16 @@ namespace SnekVk
 
         // Re-create all Vulkan structs
         Init();
+    }
+
+    void SwapChain::Init()
+    {
+        CreateSwapChain();
+        CreateImageViews();
+        CreateRenderPass();
+        CreateDepthResources();
+        CreateFrameBuffers();
+        CreateSyncObjects();
     }
 
     void SwapChain::CreateSwapChain()
@@ -128,7 +154,7 @@ namespace SnekVk
                 "Failed to create Swapchain!");
 
         vkGetSwapchainImagesKHR(device.Device(), swapChain, OUT &imageCount, nullptr);
-        swapChainImages = new VkImage[imageCount];
+        if (swapChainImages == nullptr) swapChainImages = new VkImage[imageCount];
         vkGetSwapchainImagesKHR(device.Device(), swapChain, &imageCount, OUT swapChainImages);
 
         this->imageCount = imageCount;
@@ -138,7 +164,7 @@ namespace SnekVk
 
     void SwapChain::CreateImageViews()
     {
-        swapChainImageViews = new VkImageView[imageCount];
+        if (swapChainImageViews == nullptr) swapChainImageViews = new VkImageView[imageCount];
 
         for (size_t i = 0; i < imageCount; i++)
         {
@@ -188,7 +214,6 @@ namespace SnekVk
         colorAttachmentRef.attachment = 0;
         colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-
         VkSubpassDescription subpass{};
         subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
         subpass.colorAttachmentCount = 1;
@@ -226,9 +251,9 @@ namespace SnekVk
         VkFormat format = FindDepthFormat();
         VkExtent2D swapChainExtent = GetSwapChainExtent();
 
-        depthImages = new VkImage[imageCount];
-        depthImageMemorys = new VkDeviceMemory[imageCount];
-        depthImageViews = new VkImageView[imageCount];
+        if (depthImages == nullptr) depthImages = new VkImage[imageCount];
+        if (depthImageMemorys == nullptr) depthImageMemorys = new VkDeviceMemory[imageCount];
+        if (depthImageViews == nullptr) depthImageViews = new VkImageView[imageCount];
 
         for (size_t i = 0; i < imageCount; i++)
         {
@@ -272,7 +297,7 @@ namespace SnekVk
 
     void SwapChain::CreateFrameBuffers()
     {
-        swapChainFrameBuffers = new VkFramebuffer[imageCount];
+        if (swapChainFrameBuffers == nullptr) swapChainFrameBuffers = new VkFramebuffer[imageCount];
 
         for(size_t i = 0; i < imageCount; i++)
         {
@@ -298,10 +323,10 @@ namespace SnekVk
 
     void SwapChain::CreateSyncObjects()
     {
-        imageAvailableSemaphores = new VkSemaphore[MAX_FRAMES_IN_FLIGHT];
-        renderFinishedSemaphores = new VkSemaphore[MAX_FRAMES_IN_FLIGHT];
-        inFlightFences = new VkFence[MAX_FRAMES_IN_FLIGHT];
-        imagesInFlight = new VkFence[imageCount];
+        if (imageAvailableSemaphores == nullptr) imageAvailableSemaphores = new VkSemaphore[MAX_FRAMES_IN_FLIGHT];
+        if (renderFinishedSemaphores == nullptr) renderFinishedSemaphores = new VkSemaphore[MAX_FRAMES_IN_FLIGHT];
+        if (inFlightFences == nullptr) inFlightFences = new VkFence[MAX_FRAMES_IN_FLIGHT];
+        if (imagesInFlight == nullptr) imagesInFlight = new VkFence[imageCount];
 
         for (size_t i = 0; i < imageCount; i++) imagesInFlight[i] = VK_NULL_HANDLE;
 
@@ -451,15 +476,5 @@ namespace SnekVk
             3,
             VK_IMAGE_TILING_OPTIMAL, 
             VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
-    }
-
-    void SwapChain::Init()
-    {
-        CreateSwapChain();
-        CreateImageViews();
-        CreateRenderPass();
-        CreateDepthResources();
-        CreateFrameBuffers();
-        CreateSyncObjects();
     }
 }

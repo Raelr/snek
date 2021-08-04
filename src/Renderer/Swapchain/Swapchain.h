@@ -36,11 +36,12 @@ namespace SnekVk
         VkResult AcquireNextImage(u32* imageIndex);
         VkResult SubmitCommandBuffers(const VkCommandBuffer* buffers, u32* imageIndex);
 
-        void ClearSwapChain(bool isRecreated = false);
         void RecreateSwapchain();
 
         private:
         
+        void Init();
+
         void CreateSwapChain();
         void CreateImageViews();
         void CreateRenderPass();
@@ -52,8 +53,10 @@ namespace SnekVk
         VkPresentModeKHR ChoosePresentMode(VkPresentModeKHR* presentModes, size_t presentModeCount);
         VkExtent2D ChooseSwapExtent(VkSurfaceCapabilitiesKHR& capabilities);
         VkFormat FindDepthFormat();
-        void Init();
-        
+
+        void ClearSwapChain(bool isRecreated = false);
+        void ClearMemory();
+
         VulkanDevice& device;
         VkExtent2D windowExtent;
 
@@ -72,6 +75,9 @@ namespace SnekVk
 
         VkImage* swapChainImages {nullptr};
         VkImageView* swapChainImageViews {nullptr};
+
+        // NOTE: If this count does change between swapchain re-creations then we might need to
+        // update all arrays that use it accordingly. 
         u32 imageCount;
 
         VkSwapchainKHR swapChain {nullptr};
