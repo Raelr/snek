@@ -23,12 +23,6 @@ SnekVk::Model::Vertex triangleVerts[] = {
     {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
 };
 
-SnekVk::Model::Vertex triangleVerts2[] = {
-    {{0.0f, -1.0f}, {1.0f, 0.0f, 0.0f}},
-    {{1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}}, 
-    {{-1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}}
-};
-
 int main() 
 {
     WINDOWS_ATTACH_CONSOLE
@@ -37,11 +31,15 @@ int main()
 
     SnekVk::Renderer renderer(window);
 
-    SnekVk::Model triangle(renderer.GetDevice(), triangleVerts, 3);
-    SnekVk::Model triangle2(renderer.GetDevice(), triangleVerts2, 3);
+    SnekVk::Model triangle0(renderer.GetDevice(), triangleVerts, 3);
+    SnekVk::Model triangle1(renderer.GetDevice(), triangleVerts, 3);
+    SnekVk::Model triangle2(renderer.GetDevice(), triangleVerts, 3);
+    SnekVk::Model triangle3(renderer.GetDevice(), triangleVerts, 3);
 
-    renderer.SubmitModel(&triangle);
+    renderer.SubmitModel(&triangle0);
+    renderer.SubmitModel(&triangle1);
     renderer.SubmitModel(&triangle2);
+    renderer.SubmitModel(&triangle3);
     
     while(!window.WindowShouldClose()) {
         window.Update();
