@@ -12,7 +12,7 @@ namespace SnekVk
     {
         public:
 
-        struct ModelPushConstantData
+        struct PushConstantData
         {
             glm::vec2 offset;
             alignas(16) glm::vec3 color;
@@ -36,6 +36,10 @@ namespace SnekVk
         void Bind(VkCommandBuffer commandBuffer);
         void Draw(VkCommandBuffer commandBuffer);
 
+        // TODO: Remove this when no longer relevant. 
+        PushConstantData& GetPushConstant() { return pushConstant; }
+        void SetPushConstant(PushConstantData newData) { pushConstant = newData; }
+
         private:
 
         void CreateVertexBuffers(const Vertex* vertices);
@@ -44,5 +48,7 @@ namespace SnekVk
         VkBuffer vertexBuffer;
         VkDeviceMemory vertexBufferMemory;
         u32 vertexCount;
+
+        PushConstantData pushConstant;
     };
 }
