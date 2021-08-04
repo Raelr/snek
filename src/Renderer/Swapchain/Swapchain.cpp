@@ -7,12 +7,7 @@ namespace SnekVk
     SwapChain::SwapChain(VulkanDevice& device, VkExtent2D windowExtent) 
         : device{device}, windowExtent{windowExtent}
     {
-        CreateSwapChain();
-        CreateImageViews();
-        CreateRenderPass();
-        CreateDepthResources();
-        CreateFrameBuffers();
-        CreateSyncObjects();
+        Init();
     }
 
     SwapChain::~SwapChain() 
@@ -20,7 +15,7 @@ namespace SnekVk
         ClearSwapChain();
     }
 
-    void SwapChain::ClearSwapChain()
+    void SwapChain::ClearSwapChain(bool isRecreated)
     {
         u32 imageCount = GetImageCount(); 
         for (u32 i = 0; i < imageCount; i++)
@@ -30,8 +25,9 @@ namespace SnekVk
 
         delete [] swapChainImageViews;
 
-        if (GetSwapChain() != nullptr)
+        if (!isRecreated && swapChain != nullptr)
         {
+            std::cout << "Clearing Swapchain" << std::endl;
             vkDestroySwapchainKHR(device.Device(), GetSwapChain(), nullptr);
             swapChain = nullptr;
         }
@@ -69,15 +65,10 @@ namespace SnekVk
     void SwapChain::RecreateSwapchain()
     {
         // Destroy all Vulkan structs
-        ClearSwapChain();
+        ClearSwapChain(true);
 
         // Re-create all Vulkan structs
-        CreateSwapChain();
-        CreateImageViews();
-        CreateRenderPass();
-        CreateDepthResources();
-        CreateFrameBuffers();
-        CreateSyncObjects();
+        Init();
     }
 
     void SwapChain::CreateSwapChain()
@@ -131,7 +122,7 @@ namespace SnekVk
         createInfo.presentMode = presentMode;
         createInfo.clipped = VK_TRUE;
 
-        createInfo.oldSwapchain = VK_NULL_HANDLE;
+        createInfo.oldSwapchain = swapChain ? swapChain : VK_NULL_HANDLE;
 
         SNEK_ASSERT(vkCreateSwapchainKHR(device.Device(), &createInfo, nullptr, OUT &swapChain) == VK_SUCCESS,
                 "Failed to create Swapchain!");
@@ -460,5 +451,15 @@ namespace SnekVk
             3,
             VK_IMAGE_TILING_OPTIMAL, 
             VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+    }
+
+    void SwapChain::Init()
+    {
+        CreateSwapChain();
+        CreateImageViews();
+        CreateRenderPass();
+        CreateDepthResources();
+        CreateFrameBuffers();
+        CreateSyncObjects();
     }
 }

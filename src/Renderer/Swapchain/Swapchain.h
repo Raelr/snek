@@ -36,7 +36,7 @@ namespace SnekVk
         VkResult AcquireNextImage(u32* imageIndex);
         VkResult SubmitCommandBuffers(const VkCommandBuffer* buffers, u32* imageIndex);
 
-        void ClearSwapChain();
+        void ClearSwapChain(bool isRecreated = false);
         void RecreateSwapchain();
 
         private:
@@ -52,12 +52,13 @@ namespace SnekVk
         VkPresentModeKHR ChoosePresentMode(VkPresentModeKHR* presentModes, size_t presentModeCount);
         VkExtent2D ChooseSwapExtent(VkSurfaceCapabilitiesKHR& capabilities);
         VkFormat FindDepthFormat();
+        void Init();
         
         VulkanDevice& device;
         VkExtent2D windowExtent;
 
-        VkFramebuffer* swapChainFrameBuffers;
-        VkRenderPass renderPass;
+        VkFramebuffer* swapChainFrameBuffers {nullptr};
+        VkRenderPass renderPass {nullptr};
 
         VkFormat swapChainImageFormat;
         VkExtent2D swapChainExtent;
@@ -65,20 +66,20 @@ namespace SnekVk
         // Depth image data.
         // NOTE: If these values do end up being changed dynamically, it might be a good idea to
         // wrap them in a vector.
-        VkImage* depthImages;
-        VkDeviceMemory* depthImageMemorys;
-        VkImageView* depthImageViews;
+        VkImage* depthImages {nullptr};
+        VkDeviceMemory* depthImageMemorys {nullptr};
+        VkImageView* depthImageViews {nullptr};
 
-        VkImage* swapChainImages;
-        VkImageView* swapChainImageViews;
+        VkImage* swapChainImages {nullptr};
+        VkImageView* swapChainImageViews {nullptr};
         u32 imageCount;
 
-        VkSwapchainKHR swapChain;
+        VkSwapchainKHR swapChain {nullptr};
 
-        VkSemaphore* imageAvailableSemaphores;
-        VkSemaphore* renderFinishedSemaphores;
-        VkFence* inFlightFences;
-        VkFence* imagesInFlight;
+        VkSemaphore* imageAvailableSemaphores {nullptr};
+        VkSemaphore* renderFinishedSemaphores {nullptr};
+        VkFence* inFlightFences {nullptr};
+        VkFence* imagesInFlight {nullptr};
         size_t currentFrame = 0;
     };
 }

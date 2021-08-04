@@ -16,7 +16,7 @@ namespace SnekVk
             ~Renderer();
 
             void SubmitModel(Model* model);
-            void CreateCommandBuffers(Pipeline& pipeline);
+            void CreateCommandBuffers();
             void DrawFrame();
 
             VulkanDevice& GetDevice() { return device; }
@@ -27,9 +27,11 @@ namespace SnekVk
             Pipeline CreateGraphicsPipeline();
         private:
             
-            static VkCommandBuffer* commandBuffers;
+            static Utils::Array<VkCommandBuffer> commandBuffers;
+
             void RecordCommandBuffer(int imageIndex);
             void RecreateSwapChain();
+            void FreeCommandBuffers();
             PipelineConfigInfo CreateDefaultPipelineConfig();
 
             SnekVk::Window& window;
@@ -39,7 +41,7 @@ namespace SnekVk
 
             std::vector<Model*> models;
 
-            VkPipelineLayout pipelineLayout;
+            VkPipelineLayout pipelineLayout{nullptr};
             Pipeline graphicsPipeline{CreateGraphicsPipeline()};
     };
 }
