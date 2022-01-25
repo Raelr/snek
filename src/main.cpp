@@ -1,5 +1,7 @@
-#include "Window/Window.h"
+#define VOLK_IMPLEMENTATION
+
 #include "Renderer/Device/VulkanDevice.h"
+#include "Window/Window.h"
 #include "Renderer/Pipeline/Pipeline.h"
 
 #if (defined(_WIN32) || defined(_WIN64)) && defined(DEBUG)
