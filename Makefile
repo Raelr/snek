@@ -72,9 +72,9 @@ else
 endif
 
 ifndef GLSLC
-	export GLSLC=lib/macOS/glslang/StandAlone/glslangValidator
+	export GLSLC=lib/$(platform)/glslang/StandAlone/glslangValidator
 	buildGlslang = $(MKDIR) $(call platformpth, lib/$(platform)/glslang) && \
-				cd lib/macOS/glslang && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$(pwd)/install" ../../../vendor/glslang \
+				cd lib/$(platform)/glslang && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$(pwd)/install" ../../../vendor/glslang \
 				&& cd StandAlone \
 				&& $(MAKE) -j6
 endif
