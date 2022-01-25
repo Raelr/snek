@@ -16,6 +16,8 @@ ifdef MACRO_DEFS
     macroDefines := -D $(MACRO_DEFS)
 endif
 
+buildGlslang = 
+
 ifeq ($(OS),Windows_NT)
 
 	LIB_EXT = .lib
@@ -78,6 +80,14 @@ else
 	RM := rm -rf
 endif
 
+ifndef GLSLC
+	export GLSLC=lib/macOS/glslang/StandAlone/glslangValidator
+	buildGlslang = $(MKDIR) $(call platformpth, lib/$(platform)/glslang) && \
+				cd lib/macOS/glslang && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$(pwd)/install" ../../../vendor/glslang \
+				&& cd StandAlone \
+				&& $(MAKE)
+endif
+
 # Lists phony targets for Makefile
 .PHONY: all setup submodules execute clean
 
@@ -91,6 +101,7 @@ setup: submodules lib
 lib:
 	cd vendor/glfw $(THEN) $(CMAKE_CMD) $(THEN) "$(MAKE)" 
 	$(MKDIR) $(call platformpth, lib/$(platform))
+	$(buildGlslang)
 	$(call COPY,vendor/glfw/src,lib/$(platform),libglfw3.a)
 	$(call COPY,$(VULKAN_SDK)/$(vulkanLibDir),lib/$(platform),$(vulkanLibPrefix)$(vulkanLib)$(LIB_EXT))
 	$(macOSVulkanLib)
@@ -98,6 +109,10 @@ lib:
 # Link the program and create the executable
 $(target): $(objects)
 	$(CXX) $(objects) -o $(target) $(linkFlags)
+
+$(buildDir)/%.spv: % 
+	$(MKDIR) $(call platformpth, $(@D))
+	${GLSLC} $< -V -o $@
 
 # Add all rules from dependency files
 -include $(depends)
@@ -115,3 +130,7 @@ execute:
 
 clean: 
 	$(RM) $(call platformpth, $(buildDir)/*)
+
+clean-all: clean
+	$(RM) $(call platformpth, lib/*)
+
