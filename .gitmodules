@@ -13,3 +13,9 @@
 [submodule "vendor/volk"]
 	path = vendor/volk
 	url = https://github.com/zeux/volk.git
+[submodule "vendor/Vulkan-ValidationLayers"]
+	path = vendor/Vulkan-ValidationLayers
+	url = https://github.com/KhronosGroup/Vulkan-ValidationLayers.git
+[submodule "vendor/MoltenVK"]
+	path = vendor/MoltenVK
+	url = https://github.com/KhronosGroup/MoltenVK.git

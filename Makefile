@@ -11,7 +11,7 @@ depends := $(patsubst %.o, %.d, $(objects))
 vulkanIncludes = $(VULKAN_SDK)/include
 
 ifndef VULKAN_SDK
-	vulkanIncludes = vendor/Vulkan-Headers/include/vulkan
+	vulkanIncludes = vendor/Vulkan-ValidationLayers/external/Vulkan-Headers/include/vulkan
 endif
 
 includes := -I vendor/glfw/include -I $(vulkanIncludes) -I vendor/volk
@@ -52,8 +52,8 @@ else
 	endif
 	ifeq ($(UNAMEOS), Darwin)
 
-		vulkanExports := export export VK_ICD_FILENAMES=$(VULKAN_SDK)/share/vulkan/icd.d/MoltenVK_icd.json; \ 
-						export VK_LAYER_PATH=$(VULKAN_SDK)/share/vulkan/explicit_layer.d
+		vulkanExports := export export VK_ICD_FILENAMES=vendor/MoltenVK/MoltenVK/dylib/MoltenVK_icd.json; \ 
+						export VK_LAYER_PATH=vendor/Vulkan-ValidationLayers/build/share/vulkan/explicit_layer.d
 
 		platform := macOS
 		CXX ?= clang++
