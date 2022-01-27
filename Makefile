@@ -111,6 +111,7 @@ setup: submodules lib
 
 setup-macos: setup-validation-layers setup-molten-vk lib
 
+# TODO: Move these to variable instead of targets?
 setup-validation-layers: lib
 	$(call runVendorInstallCmd,Vulkan-ValidationLayers,$(updateSubmodule))
 	$(call runVendorInstallCmd,Vulkan-ValidationLayers,$(MKDIR) $(call platformpth, build))
