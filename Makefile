@@ -82,11 +82,11 @@ ifdef DEBUG
 	export VK_LAYER_PATH=vendor/Vulkan-ValidationLayers/build/share/vulkan/explicit_layer.d
 	export VK_ICD_FILENAMES=vendor/MoltenVK/Package/Latest/MoltenVK/dylib/MoltenVK_icd.json
 vulkanIncludes := vendor/Vulkan-ValidationLayers/external/Vulkan-Headers/include/vulkan
-setup-macos: setup-validation-layers setup-moltenVk setup-glfw setup-volk 
+setup-macos: setup-glfw setup-volk setup-validation-layers setup-moltenVk
 else
 	export GLSLC=vendor/glslang/build/StandAlone/glslangValidator
 vulkanIncludes := vendor/Vulkan-Headers/include/vulkan
-setup-macos: setup-glslang setup-vulkan-headers setup-glfw setup-volk 
+setup-macos: setup-glfw setup-volk setup-glslang setup-vulkan-headers 
 endif
 else
 vulkanIncludes := $(VULKAN_SDK)/include
