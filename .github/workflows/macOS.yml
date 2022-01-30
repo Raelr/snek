@@ -20,11 +20,12 @@ jobs:
         # Setup dependencies
       - name: setup dependencies
         run: |
-          make DEBUG=true setup-macos
+          make setup-macos
           
         # Build the app
       - name: build project
         run: |
+          ls vendor/Vulkan-Headers/build/install/include/vulkan
           make bin/app
         
         # Clean the binaries
