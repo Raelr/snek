@@ -10,11 +10,9 @@ target := $(buildDir)/$(executable)
 sources := $(call rwildcard,src/,*.cpp)
 objects := $(patsubst src/%, $(buildDir)/%, $(patsubst %.cpp, %.o, $(sources)))
 depends := $(patsubst %.o, %.d, $(objects))
+submoduleDir := vendor
 
-updateSubmodule = git submodule update --init --recursive
-
-vulkanIncludes = $(VULKAN_SDK)/include
-
+updateSubmodule = git submodule update --init $(submoduleDir)/$1
 
 # TODO: 
 # Need to build and link the repository in the following way:
@@ -25,16 +23,9 @@ vulkanIncludes = $(VULKAN_SDK)/include
 # 5) Pull and build glslang - add glslangValidator path to GLSLC env variable
 # 6) Pull and build Vulkan Headers - add include path to vulkanIncludes variable
 
-includes := -I vendor/glfw/include -I $(vulkanIncludes) -I vendor/volk
+includes = -I vendor/glfw/include -I $(vulkanIncludes) -I vendor/volk
 linkFlags = -L lib/$(platform) -lglfw3
-compileFlags := -std=c++17 $(includes)
-
-ifdef MACRO_DEFS
-    macroDefines := -D $(MACRO_DEFS)
-endif
-
-buildGlslang = 
-setupCommand = 
+compileFlags = -std=c++17 $(includes)
 
 ifeq ($(OS),Windows_NT)
 
@@ -80,60 +71,66 @@ else
 	RM := rm -rf
 endif
 
-ifdef VULKAN_SDK
-
-endif
-
-ifndef VULKAN_SDK
-	vulkanIncludes = vendor/Vulkan-ValidationLayers/external/Vulkan-Headers/include/vulkan
-endif
-
-ifndef GLSLC
-	export GLSLC=lib/$(platform)/glslang/StandAlone/glslangValidator
-	buildGlslang = $(MKDIR) $(call platformpth, lib/$(platform)/glslang) && \
-				cd lib/$(platform)/glslang && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$(pwd)/install" ../../../vendor/glslang \
-				&& cd StandAlone \
-				&& $(MAKE) -j6
-endif
-
 # Lists phony targets for Makefile
 .PHONY: all setup submodules execute clean
 
 all: $(target) execute clean
 
-submodules:
-	git submodule update --init --recursive
+ifndef VULKAN_SDK
+ifdef DEBUG 
+	export GLSLC=vendor/Vulkan-ValidationLayers/external/glslang/build/StandAlone/glslangValidator
+	export VK_LAYER_PATH=vendor/Vulkan-ValidationLayers/build/share/vulkan/explicit_layer.d
+	export VK_ICD_FILENAMES=vendor/MoltenVK/Package/Latest/MoltenVK/dylib/MoltenVK_icd.json
+vulkanIncludes := vendor/Vulkan-ValidationLayers/external/Vulkan-Headers/include/vulkan
+setup-macos: setup-validation-layers setup-moltenVk setup-glfw setup-volk 
+else
+	export GLSLC=vendor/glslang/build/StandAlone/glslangValidator
+vulkanIncludes := vendor/Vulkan-Headers/include/vulkan
+setup-macos: setup-glslang setup-glfw setup-volk 
+endif
+else
+vulkanIncludes := $(VULKAN_SDK)/include
+ifdef DEBUG
+	export VK_LAYER_PATH=$(VULKAN_SDK)/etc/explicit_layer.d
+	export VK_ICD_FILENAMES=$(VULKAN_SDK)/share/vulkan/icd.d/MoltenVK_icd.json
+	export GLSLC=$(VULKAN_SDK)/bin/glslangValidator
+endif
+setup-macos: setup-glfw setup-volk
+endif
 
-setup-sdk:
-
-
-setup: submodules lib
-
-setup-macos: setup-validation-layers setup-molten-vk lib
-
-# TODO: Move these to variable instead of targets?
-setup-validation-layers: lib
-	$(call runVendorInstallCmd,Vulkan-ValidationLayers,$(updateSubmodule))
+setup-validation-layers:
+	$(call updateSubmodule,Vulkan-ValidationLayers)
 	$(call runVendorInstallCmd,Vulkan-ValidationLayers,$(MKDIR) $(call platformpth, build))
 	$(call runVendorInstallCmd,Vulkan-ValidationLayers/build,../scripts/update_deps.py --dir ../external --config release)
 	$(call runVendorInstallCmd,Vulkan-ValidationLayers/build,cmake -C ../external/helper.cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=./ ..)
 	$(call runVendorInstallCmd,Vulkan-ValidationLayers/build,cmake --build . --config Release)
 	$(call runVendorInstallCmd,Vulkan-ValidationLayers/build,cmake --install .)
 
-	$(call exportEnv, VK_LAYER_PATH,vendor/Vulkan-ValidationLayers/build/share/vulkan/explicit_layer.d)
-
-setup-molten-vk: lib 
-	$(call runVendorInstallCmd,MoltenVK,$(updateSubmodule))
+setup-moltenVk:
+	$(call updateSubmodule,MoltenVK)
 	$(call runVendorInstallCmd,MoltenVK,./fetchDependencies --macos)
 	$(call runVendorInstallCmd,MoltenVK,$(MAKE) macos)
 
-	$(call exportEnv, VK_ICD_FILENAMES,vendor/MoltenVK/Package/Latest/MoltenVK/dylib/MoltenVK_icd.json)	
+setup-glslang:
+	$(call updateSubmodule,glslang)
+	$(MKDIR) $(call platformpth,vendor/glslang/build)
+	$(call runVendorInstallCmd,glslang/build,cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$(pwd)/install" ..)
+	$(call runVendorInstallCmd,glslang/build/StandAlone,$(MAKE))
+	$(MKDIR) $(call platformpth, lib/$(platform))
+	$(call COPY,vendor/glslang/build/glslang,lib/$(platform),libglslang.a)
 
-lib:
+setup-vulkan-headers:
+	$(call updateSubmodule,Vulkan-Headers)
+
+setup-glfw:
+	$(call updateSubmodule,glfw)
+	$(call updateSubmodule,glm)
 	cd vendor/glfw $(THEN) $(CMAKE_CMD) $(THEN) "$(MAKE)" 
 	$(MKDIR) $(call platformpth, lib/$(platform))
-	$(buildGlslang)
 	$(call COPY,vendor/glfw/src,lib/$(platform),libglfw3.a)
+
+setup-volk:
+	$(call updateSubmodule,volk)
 
 # Link the program and create the executable
 $(target): $(objects)
@@ -149,7 +146,7 @@ $(buildDir)/%.spv: %
 # Compile objects to the build directory
 $(buildDir)/%.o: src/%.cpp Makefile
 	$(MKDIR) $(call platformpth, $(@D))
-	$(CXX) -MMD -MP -c $(compileFlags) $< -o $@ $(macroDefines) -D $(volkDefines)
+	$(CXX) -MMD -MP -c $(compileFlags) $< -o $@ $(CXXFLAGS) -D$(volkDefines)
 
 clear: 
 	clear;
@@ -162,4 +159,5 @@ clean:
 
 clean-all: clean
 	$(RM) $(call platformpth, lib)
+	$(RM) $(call platformpth, vendor)
 
