@@ -20,7 +20,7 @@ jobs:
         # Setup dependencies
       - name: setup dependencies
         run: |
-          make setup-macos
+          make DEBUG=true setup-macos
           
         # Build the app
       - name: build project
