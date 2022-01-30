@@ -14,7 +14,6 @@ submoduleDir := vendor
 
 updateSubmodule = git submodule update --init $(submoduleDir)/$1
 
-# TODO: 
 # Need to build and link the repository in the following way:
 # 1) Check for VULKAN_SDK env variable. If it's set, then the SDK is available and we can use the packages in it. 
 # 2) If it isn't then we build the other repositories. 
@@ -122,7 +121,7 @@ setup-glslang:
 setup-vulkan-headers:
 	$(call updateSubmodule,Vulkan-Headers)
 	$(MKDIR) $(call platformpth,vendor/Vulkan-Headers/build)
-	$(call runVendorInstallCmd,Vulkan-Headers/build,cmake -DCMAKE_INSTALL_PREFIX=install ..)
+	$(call runVendorInstallCmd,Vulkan-Headers/build,cmake -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_INSTALL_PREFIX=install ..)
 	$(call runVendorInstallCmd,Vulkan-Headers/build,make install)
 
 setup-glfw:
