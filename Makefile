@@ -85,7 +85,7 @@ vulkanIncludes := vendor/Vulkan-ValidationLayers/external/Vulkan-Headers/include
 setup-macos: setup-glfw setup-volk setup-validation-layers setup-moltenVk
 else
 	export GLSLC=vendor/glslang/build/StandAlone/glslangValidator
-vulkanIncludes := vendor/Vulkan-Headers/include/vulkan
+vulkanIncludes := vendor/Vulkan-Headers/build/install/include/vulkan
 setup-macos: setup-glfw setup-volk setup-glslang setup-vulkan-headers 
 endif
 else
@@ -121,6 +121,9 @@ setup-glslang:
 
 setup-vulkan-headers:
 	$(call updateSubmodule,Vulkan-Headers)
+	$(MKDIR) $(call platformpth,vendor/Vulkan-Headers/build)
+	$(call runVendorInstallCmd,Vulkan-Headers/build,cmake -DCMAKE_INSTALL_PREFIX=install ..)
+	$(call runVendorInstallCmd,Vulkan-Headers/build,make install)
 
 setup-glfw:
 	$(call updateSubmodule,glfw)
