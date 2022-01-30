@@ -86,7 +86,7 @@ setup-macos: setup-validation-layers setup-moltenVk setup-glfw setup-volk
 else
 	export GLSLC=vendor/glslang/build/StandAlone/glslangValidator
 vulkanIncludes := vendor/Vulkan-Headers/include/vulkan
-setup-macos: setup-glslang setup-glfw setup-volk 
+setup-macos: setup-glslang setup-vulkan-headers setup-glfw setup-volk 
 endif
 else
 vulkanIncludes := $(VULKAN_SDK)/include
@@ -158,5 +158,5 @@ clean:
 
 clean-all: clean
 	$(RM) $(call platformpth, lib)
-	$(RM) $(call platformpth, vendor)
+	$(RM) $(call platformpth, vendor/**)
 
