@@ -22,7 +22,7 @@ updateSubmodule = git submodule update --init $(submoduleDir)/$1
 # 5) Pull and build glslang - add glslangValidator path to GLSLC env variable
 # 6) Pull and build Vulkan Headers - add include path to vulkanIncludes variable
 
-includes = -I vendor/glfw/include -I vendor/volk -I $(vulkanIncludes) 
+includes = -I vendor/glfw/include -I include -I $(vulkanIncludes) 
 linkFlags = -L lib/$(platform) -lglfw3
 compileFlags = -std=c++17 $(includes)
 
@@ -132,6 +132,10 @@ setup-glfw:
 
 setup-volk:
 	$(call updateSubmodule,volk)
+	$(MKDIR) $(call platformpth, include)
+	$(call COPY,vendor/volk,include,volk.h)
+	$(call COPY,vendor/volk,include,volk.c)
+
 
 # Link the program and create the executable
 $(target): $(objects)
