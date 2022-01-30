@@ -124,7 +124,6 @@ setup-vulkan-headers:
 
 setup-glfw:
 	$(call updateSubmodule,glfw)
-	$(call updateSubmodule,glm)
 	cd vendor/glfw $(THEN) $(CMAKE_CMD) $(THEN) "$(MAKE)" 
 	$(MKDIR) $(call platformpth, lib/$(platform))
 	$(call COPY,vendor/glfw/src,lib/$(platform),libglfw3.a)
