@@ -22,7 +22,7 @@ updateSubmodule = git submodule update --init $(submoduleDir)/$1
 # 5) Pull and build glslang - add glslangValidator path to GLSLC env variable
 # 6) Pull and build Vulkan Headers - add include path to vulkanIncludes variable
 
-includes = -I vendor/glfw/include -I include -I include/volk -I $(vulkanIncludes) 
+includes = -I vendor -I vendor/glfw/include -I vendor/volk -I $(vulkanIncludes) 
 linkFlags = -L lib/$(platform) -lglfw3
 compileFlags = -std=c++17 $(includes)
 
@@ -80,7 +80,7 @@ ifdef DEBUG
 	export GLSLC=vendor/Vulkan-ValidationLayers/external/glslang/build/StandAlone/glslangValidator
 	export VK_LAYER_PATH=include/vulkan/explicit_layer.d
 	export VK_ICDFILENAMES=include/vulkan/icd.d/MoltenVK_icd.json
-vulkanIncludes := include/vulkan
+vulkanIncludes := vendor/Vulkan-ValidationLayers/external/Vulkan-Headers/include/vulkan
 setup-macos: setup-glfw setup-volk setup-validation-layers setup-moltenVk
 
 setup-validation-layers:
@@ -95,7 +95,7 @@ setup-validation-layers:
 	$(call COPY,vendor/Vulkan-ValidationLayers/build/share/vulkan/explicit_layer.d,include/vulkan/explicit_layer.d,**.json)
 else
 	export GLSLC=vendor/glslang/build/StandAlone/glslangValidator
-vulkanIncludes := include/vulkan
+vulkanIncludes := vendor/Vulkan-Headers/build/install/include/vulkan
 setup-macos: setup-glfw setup-volk setup-vulkan-headers setup-glslang 
 endif
 else
