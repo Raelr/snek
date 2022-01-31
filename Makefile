@@ -31,6 +31,7 @@ ifeq ($(OS),Windows_NT)
 	RM := -del /q
 	COPY = -robocopy "$(call platformpth,$1)" "$(call platformpth,$2)" $3
 
+	generator = MinGW Makefiles
 	volkDefines = VK_USE_PLATFORM_WIN32_KHR
 
 	ifdef DEBUG
@@ -79,6 +80,7 @@ else
 	endif
 
 	CMAKE_CMD = cmake .
+	generator = Unix Makefiles
 
 	PATHSEP := /
 	MKDIR = mkdir -p
@@ -133,7 +135,7 @@ setup-moltenVk:
 setup-glslang:
 	$(call updateSubmodule,glslang)
 	$(MKDIR) $(call platformpth,vendor/glslang/build)
-	$(call runVendorInstallCmd,glslang/build,cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$(pwd)/install" ..)
+	$(call runVendorInstallCmd,glslang/build,cmake -G="$(generator)" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$(pwd)/install" ..)
 	$(call runVendorInstallCmd,glslang/build/StandAlone,$(MAKE))
 	$(MKDIR) $(call platformpth, lib/$(platform))
 	$(call COPY,vendor/glslang/build/glslang,lib/$(platform),libglslang.a)
