@@ -22,7 +22,7 @@ updateSubmodule = git submodule update --init $(submoduleDir)/$1
 # 5) Pull and build glslang - add glslangValidator path to GLSLC env variable
 # 6) Pull and build Vulkan Headers - add include path to vulkanIncludes variable
 
-includes = -I vendor/glfw/include -I include -I $(vulkanIncludes) 
+includes = -I vendor/glfw/include -I include/volk -I $(vulkanIncludes) 
 linkFlags = -L lib/$(platform) -lglfw3
 compileFlags = -std=c++17 $(includes)
 
@@ -78,10 +78,21 @@ all: $(target) execute clean
 ifndef VULKAN_SDK
 ifdef DEBUG 
 	export GLSLC=vendor/Vulkan-ValidationLayers/external/glslang/build/StandAlone/glslangValidator
-	export VK_LAYER_PATH=vendor/Vulkan-ValidationLayers/build/share/vulkan/explicit_layer.d
-	export VK_ICD_FILENAMES=vendor/MoltenVK/Package/Latest/MoltenVK/dylib/MoltenVK_icd.json
-vulkanIncludes := vendor/Vulkan-ValidationLayers/external/Vulkan-Headers/include/vulkan
+	export VK_LAYER_PATH=include/vulkan/explicit_layer.d
+	export VK_ICDFILENAMES=include/vulkan/icd.d/MoltenVK_icd.json
+vulkanIncludes := include/vulkan
 setup-macos: setup-glfw setup-volk setup-validation-layers setup-moltenVk
+
+setup-validation-layers:
+	$(call updateSubmodule,Vulkan-ValidationLayers)
+	$(call runVendorInstallCmd,Vulkan-ValidationLayers,$(MKDIR) $(call platformpth, build))
+	$(call runVendorInstallCmd,Vulkan-ValidationLayers/build,../scripts/update_deps.py --dir ../external --config release)
+	$(call runVendorInstallCmd,Vulkan-ValidationLayers/build,cmake -C ../external/helper.cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=./ ..)
+	$(call runVendorInstallCmd,Vulkan-ValidationLayers/build,cmake --build . --config Release)
+	$(call runVendorInstallCmd,Vulkan-ValidationLayers/build,cmake --install .)
+	$(MKDIR) $(call platformpth,include/vulkan/explicit_layer.d)
+	$(call COPY,vendor/Vulkan-ValidationLayers/external/Vulkan-Headers/include/vulkan,include/vulkan,**.h)
+	$(call COPY,vendor/Vulkan-ValidationLayers/build/share/vulkan/explicit_layer.d,include/vulkan/explicit_layer.d,**.json)
 else
 	export GLSLC=vendor/glslang/build/StandAlone/glslangValidator
 vulkanIncludes := include/vulkan
@@ -97,18 +108,12 @@ endif
 setup-macos: setup-glfw setup-volk
 endif
 
-setup-validation-layers:
-	$(call updateSubmodule,Vulkan-ValidationLayers)
-	$(call runVendorInstallCmd,Vulkan-ValidationLayers,$(MKDIR) $(call platformpth, build))
-	$(call runVendorInstallCmd,Vulkan-ValidationLayers/build,../scripts/update_deps.py --dir ../external --config release)
-	$(call runVendorInstallCmd,Vulkan-ValidationLayers/build,cmake -C ../external/helper.cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=./ ..)
-	$(call runVendorInstallCmd,Vulkan-ValidationLayers/build,cmake --build . --config Release)
-	$(call runVendorInstallCmd,Vulkan-ValidationLayers/build,cmake --install .)
-
 setup-moltenVk:
 	$(call updateSubmodule,MoltenVK)
 	$(call runVendorInstallCmd,MoltenVK,./fetchDependencies --macos)
 	$(call runVendorInstallCmd,MoltenVK,$(MAKE) macos)
+	$(MKDIR) $(call platformpth,include/vulkan/icd.d)
+	$(call COPY,vendor/MoltenVK/Package/Latest/MoltenVK/dylib/macOS,include/vulkan/icd.d,**)
 
 setup-glslang:
 	$(call updateSubmodule,glslang)
@@ -126,7 +131,6 @@ setup-vulkan-headers:
 	$(MKDIR) $(call platformpth,include/vulkan)
 	$(call COPY,vendor/Vulkan-Headers/build/install/include/vulkan,include/vulkan,**.h)
 
-
 setup-glfw:
 	$(call updateSubmodule,glfw)
 	cd vendor/glfw $(THEN) $(CMAKE_CMD) $(THEN) "$(MAKE)" 
@@ -135,10 +139,9 @@ setup-glfw:
 
 setup-volk:
 	$(call updateSubmodule,volk)
-	$(MKDIR) $(call platformpth, include)
-	$(call COPY,vendor/volk,include,volk.h)
-	$(call COPY,vendor/volk,include,volk.c)
-
+	$(MKDIR) $(call platformpth, include/volk)
+	$(call COPY,vendor/volk,include/volk,volk.h)
+	$(call COPY,vendor/volk,include/volk,volk.c)
 
 # Link the program and create the executable
 $(target): $(objects)
@@ -167,5 +170,6 @@ clean:
 
 clean-all: clean
 	$(RM) $(call platformpth, lib)
+	$(RM) $(call platformpth, include)
 	$(RM) $(call platformpth, vendor/**)
 
