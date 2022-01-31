@@ -1,7 +1,7 @@
 rwildcard = $(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
 platformpth = $(subst /,$(PATHSEP),$1)
 
-runVendorInstallCmd = cd vendor/$1 $(THEN) $2
+runVendorCmd = cd vendor/$1 $(THEN) $2
 exportEnv = export $1=$2
 
 buildDir := bin
@@ -19,9 +19,6 @@ linkFlags = -L lib/$(platform) -lglfw3
 compileFlags = -std=c++17 $(includes)
 
 ifeq ($(OS),Windows_NT)
-
-	CMAKE_CMD = cmake -G "MinGW Makefiles" .
-
 	platform := Windows
 	CXX ?= g++
 	linkFlags += -Wl,--allow-multiple-definition -pthread -lopengl32 -lgdi32 -lwinmm -mwindows -static -static-libgcc -static-libstdc++
@@ -45,8 +42,6 @@ else
 	UNAMEOS := $(shell uname)
 	ifeq ($(UNAMEOS), Linux)
 
-		vulkanExports := export VK_LAYER_PATH=$(VULKAN_SDK)/etc/explicit_layer.d
-
 		platform := Linux
 		CXX ?= g++
 		linkFlags += -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi
@@ -58,6 +53,7 @@ else
 		platform := macOS
 		CXX ?= clang++
 		linkFlags += -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
+		volkDefines = VK_USE_PLATFORM_MACOS_MVK
 
 		ifdef DEBUG
 			ifdef VULKAN_SDK
@@ -65,9 +61,9 @@ else
 			else
 				export VK_ICDFILENAMES=include/vulkan/icd.d/MoltenVK_icd.json
 			endif 
-		endif
-		volkDefines = VK_USE_PLATFORM_MACOS_MVK
-	endif
+		endif # end of DEBUG check
+
+	endif # end of MacOS check
 
 	ifdef DEBUG 
 		ifdef VULKAN_SDK
@@ -77,9 +73,8 @@ else
 			export VK_LAYER_PATH=include/vulkan/explicit_layer.d
 			export GLSLC=vendor/Vulkan-ValidationLayers/external/glslang/build/StandAlone/glslangValidator
 		endif
-	endif
+	endif # end of DEBUG check
 
-	CMAKE_CMD = cmake .
 	generator = Unix Makefiles
 
 	PATHSEP := /
@@ -97,46 +92,51 @@ all: $(target) execute clean
 ifndef VULKAN_SDK
 vulkanIncludes := include/vulkan
 ifdef DEBUG 
-setup-macos: setup-glfw setup-volk setup-validation-layers setup-moltenVk
-setup-windows: setup-glfw setup-volk setup-validation-layers
-setup-linux: setup-glfw setup-volk setup-validation-layers
 
-# If we're using a Debug build, then we want to build the validation layers
-setup-validation-layers:
-	$(call updateSubmodule,Vulkan-ValidationLayers)
-	$(call runVendorInstallCmd,Vulkan-ValidationLayers,$(MKDIR) $(call platformpth, build))
-	$(call runVendorInstallCmd,Vulkan-ValidationLayers/build,../scripts/update_deps.py --dir ../external --config release)
-	$(call runVendorInstallCmd,Vulkan-ValidationLayers/build,cmake -C ../external/helper.cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=./ ..)
-	$(call runVendorInstallCmd,Vulkan-ValidationLayers/build,cmake --build . --config Release)
-	$(call runVendorInstallCmd,Vulkan-ValidationLayers/build,cmake --install .)
-	$(MKDIR) $(call platformpth,include/vulkan/explicit_layer.d)
-	$(call COPY,vendor/Vulkan-ValidationLayers/external/Vulkan-Headers/include/vulkan,include/vulkan,**.h)
-	$(call COPY,vendor/Vulkan-ValidationLayers/build/share/vulkan/explicit_layer.d,include/vulkan/explicit_layer.d,**.json)
-else
-setup-macos: setup-glfw setup-volk setup-vulkan-headers setup-glslang 
-setup-windows: setup-glfw setup-volk setup-vulkan-headers setup-glslang 
-setup-linux: setup-glfw setup-volk setup-vulkan-headers setup-glslang 
-endif
-else
-vulkanIncludes := $(VULKAN_SDK)/include
-setup-macos: setup-glfw setup-volk
-setup-windows: setup-glfw setup-volk
-setup-linux: setup-glfw setup-volk
-endif
+# MacOS requires the extra step of seting up MoltenVK 
+ifeq ($(UNAMEOS), Darwin)
 
 # Only relevant for DEBUG builds - used to get the MoltenVk ICD
 setup-moltenVk:
 	$(call updateSubmodule,MoltenVK)
-	$(call runVendorInstallCmd,MoltenVK,./fetchDependencies --macos)
-	$(call runVendorInstallCmd,MoltenVK,$(MAKE) macos)
+	
+	$(call runVendorCmd,MoltenVK,./fetchDependencies --macos)
+	$(call runVendorCmd,MoltenVK,$(MAKE) macos)
+
 	$(MKDIR) $(call platformpth,include/vulkan/icd.d)
+
 	$(call COPY,vendor/MoltenVK/Package/Latest/MoltenVK/dylib/macOS,include/vulkan/icd.d,**)
 
+setup: setup-glfw setup-volk setup-validation-layers setup-moltenVk
+
+endif # end of MacOS check
+
+setup: setup-glfw setup-volk setup-validation-layers
+
+# If we're using a Debug build, then we want to build the validation layers
+setup-validation-layers:
+	$(call updateSubmodule,Vulkan-ValidationLayers)
+
+	$(call runVendorCmd,Vulkan-ValidationLayers,$(MKDIR) $(call platformpth, build))
+	$(call runVendorCmd,Vulkan-ValidationLayers/build,../scripts/update_deps.py --dir ../external --config release)
+	$(call runVendorCmd,Vulkan-ValidationLayers/build,cmake -C ../external/helper.cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=./ ..)
+	$(call runVendorCmd,Vulkan-ValidationLayers/build,cmake --build . --config Release)
+	$(call runVendorCmd,Vulkan-ValidationLayers/build,cmake --install .)
+
+	$(MKDIR) $(call platformpth,include/vulkan/explicit_layer.d)
+
+	$(call COPY,vendor/Vulkan-ValidationLayers/external/Vulkan-Headers/include/vulkan,include/vulkan,**.h)
+	$(call COPY,vendor/Vulkan-ValidationLayers/build/share/vulkan/explicit_layer.d,include/vulkan/explicit_layer.d,**.json)
+
+else
+
+# Building GLSLANG and pulling in the Vulkan headers is only relevant when 
+# we aren't using the SDK and don't want to use validation layers 
 setup-glslang:
 	$(call updateSubmodule,glslang)
 	$(MKDIR) $(call platformpth,vendor/glslang/build)
-	$(call runVendorInstallCmd,glslang/build,cmake -G="$(generator)" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$(pwd)/install" ..)
-	$(call runVendorInstallCmd,glslang/build/StandAlone,$(MAKE))
+	$(call runVendorCmd,glslang/build,cmake -G="$(generator)" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$(pwd)/install" ..)
+	$(call runVendorCmd,glslang/build/StandAlone,$(MAKE))
 	$(MKDIR) $(call platformpth, lib/$(platform))
 	$(call COPY,vendor/glslang/build/glslang,lib/$(platform),libglslang.a)
 
@@ -145,10 +145,18 @@ setup-vulkan-headers:
 	$(MKDIR) $(call platformpth,include/vulkan)
 	$(call COPY,vendor/Vulkan-Headers/include/vulkan,include/vulkan,**.h)
 
+setup: setup-glfw setup-volk setup-vulkan-headers setup-glslang
+
+endif
+else
+vulkanIncludes := $(VULKAN_SDK)/include
+setup: setup-glfw setup-volk
+endif #End of VULKAN_SDK check
+
 # Volk and GLFW are relevant for all builds and platforms
 setup-glfw:
 	$(call updateSubmodule,glfw)
-	cd vendor/glfw $(THEN) $(CMAKE_CMD) $(THEN) "$(MAKE)" 
+	cd vendor/glfw $(THEN) cmake -G "$(generator)" . $(THEN) "$(MAKE)" 
 	$(MKDIR) $(call platformpth, lib/$(platform))
 	$(call COPY,vendor/glfw/src,lib/$(platform),libglfw3.a)
 
@@ -173,9 +181,6 @@ $(buildDir)/%.spv: %
 $(buildDir)/%.o: src/%.cpp Makefile
 	$(MKDIR) $(call platformpth, $(@D))
 	$(CXX) -MMD -MP -c $(compileFlags) $< -o $@ $(CXXFLAGS) -D$(volkDefines)
-
-clear: 
-	clear;
 
 execute: 
 	$(target) $(ARGS)
