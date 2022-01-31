@@ -142,7 +142,7 @@ setup-vulkan-headers:
 	$(call updateSubmodule,Vulkan-Headers)
 	$(MKDIR) $(call platformpth,vendor/Vulkan-Headers/build)
 	$(call runVendorInstallCmd,Vulkan-Headers/build,cmake -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_INSTALL_PREFIX=install ..)
-	$(call runVendorInstallCmd,Vulkan-Headers/build,make install)
+	$(call runVendorInstallCmd,Vulkan-Headers/build,$(MAKE) install)
 	$(MKDIR) $(call platformpth,include/vulkan)
 	$(call COPY,vendor/Vulkan-Headers/build/install/include/vulkan,include/vulkan,**.h)
 
