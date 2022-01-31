@@ -1,37 +1,34 @@
 name: macOS
 
 on:
-
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
   workflow_dispatch:
 
 jobs:
   build:
-
     runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v2
-          
+
         # Setup dependencies
       - name: setup dependencies
         run: |
           make setup-macos
-          
+
         # Build the app
       - name: build project
         run: |
-          ls vendor/Vulkan-Headers/build/install/include/vulkan
           make bin/app
-        
+
         # Clean the binaries
       - name: clean
         run: make clean
-        
+
         # Try build app in another compiler
       - name: make bin/app CXX=g++
         run: |
