@@ -79,32 +79,32 @@ ifndef VULKAN_SDK
 
         # If we're using a Debug build, then we want to build the validation layers
         setup-validation-layers:
-            $(call updateSubmodule,Vulkan-ValidationLayers)
+			$(call updateSubmodule,Vulkan-ValidationLayers)
 
-            $(call runVendorCmd,Vulkan-ValidationLayers,$(MKDIR) $(call platformpth, build))
-            $(call runVendorCmd,Vulkan-ValidationLayers/build,../scripts/update_deps.py --dir ../external --config release)
-            $(call runVendorCmd,Vulkan-ValidationLayers/build,cmake -C ../external/helper.cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=./ ..)
-            $(call runVendorCmd,Vulkan-ValidationLayers/build,cmake --build . --config Release)
-            $(call runVendorCmd,Vulkan-ValidationLayers/build,cmake --install .)
+			$(call runVendorCmd,Vulkan-ValidationLayers,$(MKDIR) $(call platformpth, build))
+			$(call runVendorCmd,Vulkan-ValidationLayers/build,../scripts/update_deps.py --dir ../external --config release)
+			$(call runVendorCmd,Vulkan-ValidationLayers/build,cmake -C ../external/helper.cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=./ ..)
+			$(call runVendorCmd,Vulkan-ValidationLayers/build,cmake --build . --config Release)
+			$(call runVendorCmd,Vulkan-ValidationLayers/build,cmake --install .)
 
-            $(MKDIR) $(call platformpth,include/vulkan/explicit_layer.d)
+			$(MKDIR) $(call platformpth,include/vulkan/explicit_layer.d)
 
-            $(call COPY,vendor/Vulkan-ValidationLayers/external/Vulkan-Headers/include/vulkan,include/vulkan,**.h)
-            $(call COPY,vendor/Vulkan-ValidationLayers/build/share/vulkan/explicit_layer.d,include/vulkan/explicit_layer.d,**.json)
+			$(call COPY,vendor/Vulkan-ValidationLayers/external/Vulkan-Headers/include/vulkan,include/vulkan,**.h)
+			$(call COPY,vendor/Vulkan-ValidationLayers/build/share/vulkan/explicit_layer.d,include/vulkan/explicit_layer.d,**.json)
 
         # MacOS requires the extra step of seting up MoltenVK 
         ifeq ($(UNAMEOS), Darwin)
 
             # Only relevant for DEBUG builds - used to get the MoltenVk ICD
             setup-moltenVk:
-                $(call updateSubmodule,MoltenVK)
+				$(call updateSubmodule,MoltenVK)
     
-                $(call runVendorCmd,MoltenVK,./fetchDependencies --macos)
-                $(call runVendorCmd,MoltenVK,$(MAKE) macos)
+				$(call runVendorCmd,MoltenVK,./fetchDependencies --macos)
+				$(call runVendorCmd,MoltenVK,$(MAKE) macos)
 
-                $(MKDIR) $(call platformpth,include/vulkan/icd.d)
-
-                $(call COPY,vendor/MoltenVK/Package/Latest/MoltenVK/dylib/macOS,include/vulkan/icd.d,**)
+				$(MKDIR) $(call platformpth,include/vulkan/icd.d)
+				
+				$(call COPY,vendor/MoltenVK/Package/Latest/MoltenVK/dylib/macOS,include/vulkan/icd.d,**)
 
             export VK_ICDFILENAMES=include/vulkan/icd.d/MoltenVK_icd.json
 
@@ -126,17 +126,17 @@ ifndef VULKAN_SDK
         # Building GLSLANG and pulling in the Vulkan headers is only relevant when 
         # we aren't using the SDK and don't want to use validation layers 
         setup-glslang:
-            $(call updateSubmodule,glslang)
-            $(MKDIR) $(call platformpth,vendor/glslang/build)
-            $(call runVendorCmd,glslang/build,cmake -G="$(generator)" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$(pwd)/install" ..)
-            $(call runVendorCmd,glslang/build/StandAlone,$(MAKE))
-            $(MKDIR) $(call platformpth, lib/$(platform))
-            $(call COPY,vendor/glslang/build/glslang,lib/$(platform),libglslang.a)
+			$(call updateSubmodule,glslang)
+			$(MKDIR) $(call platformpth,vendor/glslang/build)
+			$(call runVendorCmd,glslang/build,cmake -G="$(generator)" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$(pwd)/install" ..)
+			$(call runVendorCmd,glslang/build/StandAlone,$(MAKE))
+			$(MKDIR) $(call platformpth, lib/$(platform))
+			$(call COPY,vendor/glslang/build/glslang,lib/$(platform),libglslang.a)
 
         setup-vulkan-headers:
-            $(call updateSubmodule,Vulkan-Headers)
-            $(MKDIR) $(call platformpth,include/vulkan)
-            $(call COPY,vendor/Vulkan-Headers/include/vulkan,include/vulkan,**.h)
+			$(call updateSubmodule,Vulkan-Headers)
+			$(MKDIR) $(call platformpth,include/vulkan)
+			$(call COPY,vendor/Vulkan-Headers/include/vulkan,include/vulkan,**.h)
 
         setup: setup-glfw setup-volk setup-vulkan-headers setup-glslang
     endif
@@ -148,41 +148,41 @@ endif #End of VULKAN_SDK check
 # Volk and GLFW are relevant for all builds and platforms, therefore
 # we make these targets available for everyone
 setup-glfw:
-    $(call updateSubmodule,glfw)
-    cd vendor/glfw $(THEN) cmake -G "$(generator)" . $(THEN) "$(MAKE)" 
-    $(MKDIR) $(call platformpth, lib/$(platform))
-    $(call COPY,vendor/glfw/src,lib/$(platform),libglfw3.a)
+	$(call updateSubmodule,glfw)
+	cd vendor/glfw $(THEN) cmake -G "$(generator)" . $(THEN) "$(MAKE)" 
+	$(MKDIR) $(call platformpth, lib/$(platform))
+	$(call COPY,vendor/glfw/src,lib/$(platform),libglfw3.a)
 
 setup-volk:
-    $(call updateSubmodule,volk)
-    $(MKDIR) $(call platformpth, include/volk)
-    $(call COPY,vendor/volk,include/volk,volk.h)
-    $(call COPY,vendor/volk,include/volk,volk.c)
+	$(call updateSubmodule,volk)
+	$(MKDIR) $(call platformpth, include/volk)
+	$(call COPY,vendor/volk,include/volk,volk.h)
+	$(call COPY,vendor/volk,include/volk,volk.c)
 
 # Link the program and create the executable
 $(target): $(objects)
-    $(CXX) $(objects) -o $(target) $(linkFlags)
+	$(CXX) $(objects) -o $(target) $(linkFlags)
 
 $(buildDir)/%.spv: % 
-    $(MKDIR) $(call platformpth, $(@D))
-    ${GLSLC} $< -V -o $@
+	$(MKDIR) $(call platformpth, $(@D))
+	${GLSLC} $< -V -o $@
 
 # Add all rules from dependency files
 -include $(depends)
 
 # Compile objects to the build directory
 $(buildDir)/%.o: src/%.cpp Makefile
-    $(MKDIR) $(call platformpth, $(@D))
-    $(CXX) -MMD -MP -c $(compileFlags) $< -o $@ $(CXXFLAGS) -D$(volkDefines)
+	$(MKDIR) $(call platformpth, $(@D))
+	$(CXX) -MMD -MP -c $(compileFlags) $< -o $@ $(CXXFLAGS) -D$(volkDefines)
 
 execute: 
-    $(target) $(ARGS)
+	$(target) $(ARGS)
 
 clean: 
-    $(RM) $(call platformpth, $(buildDir)/*)
+	$(RM) $(call platformpth, $(buildDir)/*)
 
 clean-all: clean
-    $(RM) $(call platformpth, lib)
-    $(RM) $(call platformpth, include)
-    $(RM) $(call platformpth, vendor/**)
+	$(RM) $(call platformpth, lib)
+	$(RM) $(call platformpth, include)
+	$(RM) $(call platformpth, vendor/**)
 
