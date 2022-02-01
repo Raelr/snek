@@ -31,7 +31,7 @@ ifeq ($(OS),Windows_NT)
     generator = MinGW Makefiles
     volkDefines = VK_USE_PLATFORM_WIN32_KHR
 
-    setx GLSLC $(call platformpth,$(VULKAN_SDK)/bin/glslangValidator)
+    export GLSLC $(call platformpth,$(VULKAN_SDK)/bin/glslangValidator)
 else 
 	UNAMEOS := $(shell uname)
 	ifeq ($(UNAMEOS), Linux)
