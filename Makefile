@@ -28,7 +28,7 @@ ifeq ($(OS),Windows_NT)
     RM := -del /q
     COPY = -robocopy "$(call platformpth,$1)" "$(call platformpth,$2)" $3
 
-    generator = MinGW Makefiles
+    generator := "MinGW Makefiles"
     volkDefines = VK_USE_PLATFORM_WIN32_KHR
 
     export GLSLC $(call platformpth,$(VULKAN_SDK)/bin/glslangValidator)
@@ -57,7 +57,7 @@ else
     export VK_LAYER_PATH=$(VULKAN_SDK)/etc/explicit_layer.d
     export GLSLC=$(VULKAN_SDK)/bin/glslangValidator
 
-    generator = Unix Makefiles
+    generator := "Unix Makefiles"
 
     PATHSEP := /
     MKDIR = mkdir -p
@@ -128,7 +128,7 @@ ifndef VULKAN_SDK
         setup-glslang:
 			$(call updateSubmodule,glslang)
 			$(MKDIR) $(call platformpth,vendor/glslang/build)
-			$(call runVendorCmd,glslang/build,cmake -G="$(generator)" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$(pwd)/install" ..)
+			$(call runVendorCmd,glslang/build,cmake -G $(generator) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$(pwd)/install" ..)
 			$(call runVendorCmd,glslang/build/StandAlone,$(MAKE))
 			$(MKDIR) $(call platformpth, lib/$(platform))
 			$(call COPY,vendor/glslang/build/glslang,lib/$(platform),libglslang.a)
@@ -149,7 +149,7 @@ endif #End of VULKAN_SDK check
 # we make these targets available for everyone
 setup-glfw:
 	$(call updateSubmodule,glfw)
-	cd vendor/glfw $(THEN) cmake -G "$(generator)" . $(THEN) "$(MAKE)" 
+	cd vendor/glfw $(THEN) cmake -G $(generator) . $(THEN) "$(MAKE)" 
 	$(MKDIR) $(call platformpth, lib/$(platform))
 	$(call COPY,vendor/glfw/src,lib/$(platform),libglfw3.a)
 
