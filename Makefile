@@ -50,11 +50,10 @@ else
         
         volkDefines = VK_USE_PLATFORM_MACOS_MVK
 
-        export VK_ICD_FILENAMES=$(VULKAN_SDK)/share/vulkan/icd.d/MoltenVK_icd.json
-
     endif # end of MacOS check
 
-    export VK_LAYER_PATH=$(VULKAN_SDK)/etc/explicit_layer.d
+    layerPath=$(VULKAN_SDK)/etc/explicit_layer.d
+
     export GLSLC=$(VULKAN_SDK)/bin/glslangValidator
 
     generator = Unix Makefiles
@@ -91,6 +90,7 @@ ifndef VULKAN_SDK
 
 			$(call COPY,vendor/Vulkan-ValidationLayers/external/Vulkan-Headers/include/vulkan,include/vulkan,**.h)
 			$(call COPY,vendor/Vulkan-ValidationLayers/build/share/vulkan/explicit_layer.d,include/vulkan/explicit_layer.d,**.json)
+            $(call COPY,vendor/Vulkan-ValidationLayers/build/lib/libVkLayer_khronos_validation.dylib,/usr/local/lib,**.json)
 
         # MacOS requires the extra step of seting up MoltenVK 
         ifeq ($(UNAMEOS), Darwin)
@@ -105,18 +105,16 @@ ifndef VULKAN_SDK
 				$(MKDIR) $(call platformpth,include/vulkan/icd.d)
 				
 				$(call COPY,vendor/MoltenVK/Package/Latest/MoltenVK/dylib/macOS,include/vulkan/icd.d,**)
-
-            export VK_ICDFILENAMES=include/vulkan/icd.d/MoltenVK_icd.json
+				$(call COPY,vendor/MoltenVK/Package/Latest/MoltenVK/dylib/macOS,/usr/local/lib,libMoltenVK.dylib)
 
             setup: setup-glfw setup-volk setup-validation-layers setup-moltenVk
 
         endif # end of MacOS check
 
         ifneq ($(OS),Windows_NT)
-            export VK_LAYER_PATH=include/vulkan/explicit_layer.d
             export GLSLC=vendor/Vulkan-ValidationLayers/external/glslang/build/StandAlone/glslangValidator
         else 
-            export GLSLC=$(call platformpth,vendor/Vulkan-ValidationLayers/external/glslang/build/StandAlone/glslangValidator)
+            export GLSLC=$(call platformpth,vendor/Vulkan-ValidationLayers/external/glslang/build/StandAlone/glslangValidator.exe)
         endif # end of windows check
 
         setup: setup-glfw setup-volk setup-validation-layers
@@ -144,6 +142,9 @@ else # If VULKAN_SDK is defined
     vulkanIncludes := $(VULKAN_SDK)/include
     setup: setup-glfw setup-volk
 endif #End of VULKAN_SDK check
+
+setup-vulkan-loader:
+	$(call COPY,vendor/Vulkan-Loader/build/loader,/usr/local/lib,**.dylib)
 
 # Volk and GLFW are relevant for all builds and platforms, therefore
 # we make these targets available for everyone

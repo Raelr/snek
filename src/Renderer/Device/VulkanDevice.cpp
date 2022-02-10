@@ -9,7 +9,7 @@ namespace SnekVk {
 
 	VulkanDevice::VulkanDevice(Window &window) : window{window} 
 	{
-		VkResult result = volkInitialize();
+		SNEK_ASSERT(volkInitialize() == VK_SUCCESS, "Unable to initialise Volk!");
 
 		CreateInstance();
 		SetupDebugMessenger();
