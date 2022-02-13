@@ -13,6 +13,7 @@ depends := $(patsubst %.o, %.d, $(objects))
 submoduleDir := vendor
 
 updateSubmodule = git submodule update --init $(submoduleDir)/$1
+clone = git clone $1
 
 includes = -I include -I vendor/glfw/include -I include/volk -I $(vulkanIncludes) 
 linkFlags = -L lib/$(platform) -lglfw3
@@ -73,6 +74,14 @@ all: $(target) execute clean
 ifndef VULKAN_SDK
 
     vulkanIncludes := include/vulkan
+
+	ifndef DYLD_LIBRARY_PATH
+        export DYLD_LIBRARY_PATH=$(CURDIR)/lib/macOS
+	endif 
+
+	ifndef VK_LAYER_PATH
+        export VK_LAYER_PATH=$(CURDIR)/include/vulkan/explicit_layer.d
+	endif 
     
     ifdef DEBUG 
 
@@ -89,8 +98,8 @@ ifndef VULKAN_SDK
 			$(MKDIR) $(call platformpth,include/vulkan/explicit_layer.d)
 
 			$(call COPY,vendor/Vulkan-ValidationLayers/external/Vulkan-Headers/include/vulkan,include/vulkan,**.h)
+			$(call COPY,vendor/Vulkan-ValidationLayers/external/Vulkan-Headers/include/vulkan,include/vulkan,**.hpp)
 			$(call COPY,vendor/Vulkan-ValidationLayers/build/share/vulkan/explicit_layer.d,include/vulkan/explicit_layer.d,**.json)
-            $(call COPY,vendor/Vulkan-ValidationLayers/build/lib/libVkLayer_khronos_validation.dylib,/usr/local/lib,**.json)
 
         # MacOS requires the extra step of seting up MoltenVK 
         ifeq ($(UNAMEOS), Darwin)
@@ -105,9 +114,25 @@ ifndef VULKAN_SDK
 				$(MKDIR) $(call platformpth,include/vulkan/icd.d)
 				
 				$(call COPY,vendor/MoltenVK/Package/Latest/MoltenVK/dylib/macOS,include/vulkan/icd.d,**)
+				$(call COPY,vendor/MoltenVK/Package/Latest/MoltenVK/dylib/macOS,lib/$(platform),**.dylib)
+			
+            ifndef VK_ICD_FILENAMES
+                export VK_ICD_FILENAMES=$(CURDIR)/include/vulkan/icd.d/MoltenVK_icd.d
+	        endif 
+				
+            setup: setup-glfw setup-volk setup-vulkan-loader setup-validation-layers setup-moltenVk
+
+            install: 
+				$(info ---- Copying Vulkan loader libs ----)
+				$(call COPY,lib/$(platform),/usr/local/lib,libvulkan**.dylib)
 				$(call COPY,vendor/MoltenVK/Package/Latest/MoltenVK/dylib/macOS,/usr/local/lib,libMoltenVK.dylib)
 
-            setup: setup-glfw setup-volk setup-validation-layers setup-moltenVk
+				$(info ---- Copying Vulkan Validation Layers ----)
+				$(call COPY,vendor/Vulkan-ValidationLayers/build/lib/libVkLayer_khronos_validation.dylib,/usr/local/lib,**.json)
+				$(MKDIR) /usr/local/share/vulkan/explicit_layer.d
+				$(call COPY,Vulkan-ValidationLayers/build/share/vulkan/explicit_layer.d,/usr/local/share/vulkan/explicit_layer.d,**)
+
+				$(info ---- Copying Vulkan Headers ----)
 
         endif # end of MacOS check
 
@@ -117,8 +142,8 @@ ifndef VULKAN_SDK
             export GLSLC=$(call platformpth,vendor/Vulkan-ValidationLayers/external/glslang/build/StandAlone/glslangValidator.exe)
         endif # end of windows check
 
-        setup: setup-glfw setup-volk setup-validation-layers
-
+        setup: setup-glfw setup-volk setup-vulkan-loader setup-validation-layers
+		
     else # if it isnt DEBUG
 
         # Building GLSLANG and pulling in the Vulkan headers is only relevant when 
@@ -136,15 +161,22 @@ ifndef VULKAN_SDK
 			$(MKDIR) $(call platformpth,include/vulkan)
 			$(call COPY,vendor/Vulkan-Headers/include/vulkan,include/vulkan,**.h)
 
-        setup: setup-glfw setup-volk setup-vulkan-headers setup-glslang
+        setup: setup-glfw setup-volk setup-vulkan-loader setup-vulkan-headers setup-glslang
     endif
 else # If VULKAN_SDK is defined
     vulkanIncludes := $(VULKAN_SDK)/include
     setup: setup-glfw setup-volk
 endif #End of VULKAN_SDK check
 
+
 setup-vulkan-loader:
-	$(call COPY,vendor/Vulkan-Loader/build/loader,/usr/local/lib,**.dylib)
+	cd vendor $(THEN) $(call clone,https://github.com/KhronosGroup/Vulkan-Loader.git)
+	$(call runVendorCmd,Vulkan-Loader,$(MKDIR) build)
+	$(call runVendorCmd,Vulkan-Loader/build,../scripts/update_deps.py)
+	$(call runVendorCmd,Vulkan-Loader/build,cmake -C helper.cmake ..)
+	$(call runVendorCmd,Vulkan-Loader/build,cmake --build .)
+	$(MKDIR) $(call platformpth, lib/$(platform))
+	$(call COPY,vendor/Vulkan-Loader/build/loader,lib/$(platform),**.dylib)
 
 # Volk and GLFW are relevant for all builds and platforms, therefore
 # we make these targets available for everyone
