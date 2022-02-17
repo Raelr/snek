@@ -79,8 +79,14 @@ ifndef VULKAN_SDK
         export DYLD_LIBRARY_PATH=$(CURDIR)/lib/macOS
 	endif 
 
+    # This is only required when using validation layers
 	ifndef VK_LAYER_PATH
         export VK_LAYER_PATH=$(CURDIR)/include/vulkan/explicit_layer.d
+	endif 
+
+    # This is required regardless of the build type 
+	ifndef VK_ICD_FILENAMES
+        export VK_ICD_FILENAMES=$(CURDIR)/include/vulkan/icd.d/MoltenVK_icd.json
 	endif 
     
     ifdef DEBUG 
@@ -100,10 +106,12 @@ ifndef VULKAN_SDK
 			$(call COPY,vendor/Vulkan-ValidationLayers/external/Vulkan-Headers/include/vulkan,include/vulkan,**.h)
 			$(call COPY,vendor/Vulkan-ValidationLayers/external/Vulkan-Headers/include/vulkan,include/vulkan,**.hpp)
 			$(call COPY,vendor/Vulkan-ValidationLayers/build/share/vulkan/explicit_layer.d,include/vulkan/explicit_layer.d,**.json)
+			$(call COPY,vendor/Vulkan-ValidationLayers/build/layers/,lib/macOS,libVkLayer_khronos_validation.dylib)
 
         # MacOS requires the extra step of seting up MoltenVK 
         ifeq ($(UNAMEOS), Darwin)
 
+            # TODO: move this to run regardless of build, but only for MacOS
             # Only relevant for DEBUG builds - used to get the MoltenVk ICD
             setup-moltenVk:
 				$(call updateSubmodule,MoltenVK)
@@ -116,10 +124,6 @@ ifndef VULKAN_SDK
 				$(call COPY,vendor/MoltenVK/Package/Latest/MoltenVK/dylib/macOS,include/vulkan/icd.d,**)
 				$(call COPY,vendor/MoltenVK/Package/Latest/MoltenVK/dylib/macOS,lib/$(platform),**.dylib)
 			
-            ifndef VK_ICD_FILENAMES
-                export VK_ICD_FILENAMES=$(CURDIR)/include/vulkan/icd.d/MoltenVK_icd.d
-	        endif 
-				
             setup: setup-glfw setup-volk setup-vulkan-loader setup-validation-layers setup-moltenVk
 
             install: 
@@ -209,6 +213,9 @@ $(buildDir)/%.o: src/%.cpp Makefile
 	$(CXX) -MMD -MP -c $(compileFlags) $< -o $@ $(CXXFLAGS) -D$(volkDefines)
 
 execute: 
+	echo $(DYLD_LIBRARY_PATH)
+	echo $(VK_LAYER_PATH)
+	echo $(VK_ICD_FILENAMES)
 	$(target) $(ARGS)
 
 clean: 
