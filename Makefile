@@ -130,7 +130,6 @@ ifndef VULKAN_SDK
             install-vulkan: 
 				$(info ---- Installing Vulkan Dependencies ----)
 
-				echo 
 				$(call COPY,lib/$(platform),/usr/local/lib,libvulkan**.dylib)
 
 				$(info ---- Copying MoltenVk libs ----)
@@ -183,10 +182,9 @@ else # If VULKAN_SDK is defined
     setup: setup-glfw setup-volk
 endif #End of VULKAN_SDK check
 
-
 setup-vulkan-loader:
 	cd vendor $(THEN) $(call clone,https://github.com/KhronosGroup/Vulkan-Loader.git)
-	$(call runVendorCmd,Vulkan-Loader,$(MKDIR) build)
+	$(MKDIR) vendor/Vulkan-Loader/build
 	$(call runVendorCmd,Vulkan-Loader/build,../scripts/update_deps.py)
 	$(call runVendorCmd,Vulkan-Loader/build,cmake -C helper.cmake ..)
 	$(call runVendorCmd,Vulkan-Loader/build,cmake --build .)
