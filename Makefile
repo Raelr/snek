@@ -28,6 +28,7 @@ ifeq ($(OS),Windows_NT)
     MKDIR := -mkdir -p
     RM := -del /q
     COPY = -robocopy "$(call platformpth,$1)" "$(call platformpth,$2)" $3
+	libSuffix = dll
 
     generator := "MinGW Makefiles"
     volkDefines = VK_USE_PLATFORM_WIN32_KHR
@@ -40,6 +41,7 @@ else
         platform := Linux
         CXX ?= g++
         linkFlags += -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi
+		libSuffix = so
 
         volkDefines = VK_USE_PLATFORM_XLIB_KHR
     endif
@@ -48,6 +50,7 @@ else
         platform := macOS
         CXX ?= clang++
         linkFlags += -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
+		libSuffix = dylib
         
         volkDefines = VK_USE_PLATFORM_MACOS_MVK
 
@@ -120,7 +123,7 @@ ifndef VULKAN_SDK
 			$(call COPY,vendor/Vulkan-ValidationLayers/external/Vulkan-Headers/include/vulkan,include/vulkan,**.h)
 			$(call COPY,vendor/Vulkan-ValidationLayers/external/Vulkan-Headers/include/vulkan,include/vulkan,**.hpp)
 			$(call COPY,vendor/Vulkan-ValidationLayers/build/share/vulkan/explicit_layer.d,include/vulkan/explicit_layer.d,**.json)
-			$(call COPY,vendor/Vulkan-ValidationLayers/build/layers/,lib/macOS,libVkLayer_khronos_validation.dylib)
+			$(call COPY,vendor/Vulkan-ValidationLayers/build/layers/,lib/macOS,libVkLayer_khronos_validation.$(libSuffix))
 
         # MacOS requires the extra step of seting up MoltenVK 
         ifeq ($(UNAMEOS), Darwin)
@@ -189,7 +192,7 @@ setup-vulkan-loader:
 	$(call runVendorCmd,Vulkan-Loader/build,cmake -C helper.cmake ..)
 	$(call runVendorCmd,Vulkan-Loader/build,cmake --build .)
 	$(MKDIR) $(call platformpth, lib/$(platform))
-	$(call COPY,vendor/Vulkan-Loader/build/loader,lib/$(platform),**.dylib)
+	$(call COPY,vendor/Vulkan-Loader/build/loader,lib/$(platform),**.$(libSuffix))
 
 # Volk and GLFW are relevant for all builds and platforms, therefore
 # we make these targets available for everyone
