@@ -10,6 +10,7 @@ target := $(buildDir)/$(executable)
 sources := $(call rwildcard,src/,*.cpp)
 objects := $(patsubst src/%, $(buildDir)/%, $(patsubst %.cpp, %.o, $(sources)))
 depends := $(patsubst %.o, %.d, $(objects))
+
 submoduleDir := vendor
 
 updateSubmodule = git submodule update --init $(submoduleDir)/$1
@@ -25,15 +26,26 @@ ifeq ($(OS),Windows_NT)
     linkFlags += -Wl,--allow-multiple-definition -pthread -lopengl32 -lgdi32 -lwinmm -mwindows -static -static-libgcc -static-libstdc++
     THEN := &&
     PATHSEP := \$(BLANK)
-    MKDIR := -mkdir -p
-    RM := -del /q
+    MKDIR = if not exist $1 mkdir $1
+    RMDIR = -rmdir /s /q $1
+    RM = -del /q $1 $(THEN) for /d %%x in ($1) do @rd /s /q "%%x"
+
     COPY = -robocopy "$(call platformpth,$1)" "$(call platformpth,$2)" $3
 	libSuffix = dll
 
     generator := "MinGW Makefiles"
     volkDefines = VK_USE_PLATFORM_WIN32_KHR
+    loaderInstallDir := vendor/Vulkan-Loader/build/loader/Release
 
     export GLSLC $(call platformpth,$(VULKAN_SDK)/bin/glslangValidator)
+
+    clean:
+		$(call RM,$(call platformpth,$(buildDir)/*))
+
+    clean-all: clean
+		$(call RMDIR,$(call platformpth,lib))
+		$(call RMDIR,$(call platformpth,include))
+		$(call RM,$(call platformpth,vendor\*))
 else 
     UNAMEOS := $(shell uname)
     ifeq ($(UNAMEOS), Linux)
@@ -61,12 +73,21 @@ else
     export GLSLC=$(VULKAN_SDK)/bin/glslangValidator
 
     generator := "Unix Makefiles"
+    loaderInstallDir := vendor/Vulkan-Loader/build/loader
 
     PATHSEP := /
-    MKDIR = mkdir -p
+    MKDIR = mkdir -p $1
     COPY = cp $1$(PATHSEP)$3 $2
     THEN = ;
-    RM := rm -rf
+    RM = rm -rf
+
+    clean:
+		$(RM) $(call platformpth,$(buildDir)/*)
+
+    clean-all: clean
+		$(RM) $(call platformpth,lib)
+		$(RM) $(call platformpth,include)
+		$(RM) $(call platformpth,platformpth,vendor/**)
 endif
 
 # Lists phony targets for Makefile
@@ -95,7 +116,7 @@ ifndef VULKAN_SDK
 			$(call runVendorCmd,MoltenVK,./fetchDependencies --macos)
 			$(call runVendorCmd,MoltenVK,$(MAKE) macos)
 
-			$(MKDIR) $(call platformpth,include/vulkan/icd.d)
+			$(call MKDIR, $(call platformpth,include/vulkan/icd.d))
 
 			$(call COPY,vendor/MoltenVK/Package/Latest/MoltenVK/dylib/macOS,include/vulkan/icd.d,**)
 			$(call COPY,vendor/MoltenVK/Package/Latest/MoltenVK/dylib/macOS,lib/$(platform),**.dylib)
@@ -118,7 +139,7 @@ ifndef VULKAN_SDK
 			$(call runVendorCmd,Vulkan-ValidationLayers/build,cmake --build . --config Release)
 			$(call runVendorCmd,Vulkan-ValidationLayers/build,cmake --install .)
 
-			$(MKDIR) $(call platformpth,include/vulkan/explicit_layer.d)
+			$(call MKDIR,$(call platformpth,include/vulkan/explicit_layer.d))
 
 			$(call COPY,vendor/Vulkan-ValidationLayers/external/Vulkan-Headers/include/vulkan,include/vulkan,**.h)
 			$(call COPY,vendor/Vulkan-ValidationLayers/external/Vulkan-Headers/include/vulkan,include/vulkan,**.hpp)
@@ -139,12 +160,12 @@ ifndef VULKAN_SDK
 				$(call COPY,vendor/MoltenVK/Package/Latest/MoltenVK/dylib/macOS,/usr/local/lib,libMoltenVK.dylib)
 
 				$(info ---- Copying MoltenVk icd ----)
-				$(MKDIR) $(call platformpth, /usr/local/share/vulkan/icd.d)
+				$(call MKDIR, $(call platformpth, /usr/local/share/vulkan/icd.d))
 				$(call COPY,include/vulkan/icd.d,/usr/local/share/vulkan/icd.d,**)
 
 				$(info ---- Copying Vulkan Validation Layers ----)
 				$(call COPY,vendor/Vulkan-ValidationLayers/build/lib,/usr/local/lib,libVkLayer_khronos_validation.dylib)
-				$(MKDIR) $(call platformpth, /usr/local/share/vulkan/explicit_layer.d)
+				$(call MKDIR, $(call platformpth, /usr/local/share/vulkan/explicit_layer.d))
 				$(call COPY,vendor/Vulkan-ValidationLayers/build/share/vulkan/explicit_layer.d,/usr/local/share/vulkan/explicit_layer.d,**.json)
 
 				$(info ---- Copying Vulkan Headers ----)
@@ -154,7 +175,7 @@ ifndef VULKAN_SDK
         endif # end of MacOS check
 
         ifneq ($(OS),Windows_NT)
-            export GLSLC=vendor/Vulkan-ValidationLayers/external/glslang/build/StandAlone/glslangValidator
+            export GLSLC=vendor/Vulkan-ValidationLayers/external/glslang/build/StandAlone/glslangValidator.exe
         else 
             export GLSLC=$(call platformpth,vendor/Vulkan-ValidationLayers/external/glslang/build/StandAlone/glslangValidator.exe)
         endif # end of windows check
@@ -167,15 +188,15 @@ ifndef VULKAN_SDK
         # we aren't using the SDK and don't want to use validation layers 
         setup-glslang:
 			$(call updateSubmodule,glslang)
-			$(MKDIR) $(call platformpth,vendor/glslang/build)
+			$(call MKDIR, $(call platformpth,vendor/glslang/build))
 			$(call runVendorCmd,glslang/build,cmake -G $(generator) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$(pwd)/install" ..)
-			$(call runVendorCmd,glslang/build/StandAlone,$(MAKE))
-			$(MKDIR) $(call platformpth, lib/$(platform))
+			$(call runVendorCmd,glslang/build/StandAlone,make)
+			$(call MKDIR, $(call platformpth, lib/$(platform)))
 			$(call COPY,vendor/glslang/build/glslang,lib/$(platform),libglslang.a)
 
         setup-vulkan-headers:
 			$(call updateSubmodule,Vulkan-Headers)
-			$(MKDIR) $(call platformpth,include/vulkan)
+			$(call MKDIR, $(call platformpth,include/vulkan))
 			$(call COPY,vendor/Vulkan-Headers/include/vulkan,include/vulkan,**.h)
 
         setup: setup-glfw setup-volk setup-vulkan-loader setup-vulkan-headers setup-glslang
@@ -187,24 +208,29 @@ endif #End of VULKAN_SDK check
 
 setup-vulkan-loader:
 	cd vendor $(THEN) $(call clone,https://github.com/KhronosGroup/Vulkan-Loader.git)
-	$(MKDIR) vendor/Vulkan-Loader/build
-	$(call runVendorCmd,Vulkan-Loader/build,../scripts/update_deps.py)
+	$(call MKDIR, $(call platformpth, vendor/Vulkan-Loader/build))
+
+	$(call runVendorCmd,$(call platformpth,Vulkan-Loader/build),$(call platformpth,../scripts/update_deps.py))
 	$(call runVendorCmd,Vulkan-Loader/build,cmake -C helper.cmake ..)
-	$(call runVendorCmd,Vulkan-Loader/build,cmake --build .)
-	$(MKDIR) $(call platformpth, lib/$(platform))
-	$(call COPY,vendor/Vulkan-Loader/build/loader,lib/$(platform),**.$(libSuffix))
+	$(call runVendorCmd,Vulkan-Loader/build,cmake --build . --config Release)
+
+	$(call MKDIR,$(call platformpth,lib/$(platform)))
+
+	$(call COPY,$(loaderInstallDir),lib/$(platform),**.$(libSuffix))
 
 # Volk and GLFW are relevant for all builds and platforms, therefore
 # we make these targets available for everyone
 setup-glfw:
 	$(call updateSubmodule,glfw)
 	cd vendor/glfw $(THEN) cmake -G $(generator) . $(THEN) "$(MAKE)" 
-	$(MKDIR) $(call platformpth, lib/$(platform))
+	$(call MKDIR,$(call platformpth,lib/$(platform)))
 	$(call COPY,vendor/glfw/src,lib/$(platform),libglfw3.a)
 
 setup-volk:
 	$(call updateSubmodule,volk)
-	$(MKDIR) $(call platformpth, include/volk)
+
+	$(call MKDIR, $(call platformpth, $(call platformpth, include/volk)))
+
 	$(call COPY,vendor/volk,include/volk,volk.h)
 	$(call COPY,vendor/volk,include/volk,volk.c)
 
@@ -213,7 +239,7 @@ $(target): $(objects)
 	$(CXX) $(objects) -o $(target) $(linkFlags)
 
 $(buildDir)/%.spv: % 
-	$(MKDIR) $(call platformpth, $(@D))
+	$(call MKDIR, $(call platformpth, $(@D)))
 	${GLSLC} $< -V -o $@
 
 # Add all rules from dependency files
@@ -221,17 +247,8 @@ $(buildDir)/%.spv: %
 
 # Compile objects to the build directory
 $(buildDir)/%.o: src/%.cpp Makefile
-	$(MKDIR) $(call platformpth, $(@D))
+	$(call MKDIR, $(call platformpth, $(@D)))
 	$(CXX) -MMD -MP -c $(compileFlags) $< -o $@ $(CXXFLAGS) -D$(volkDefines)
 
 execute: 
 	$(target) $(ARGS)
-
-clean: 
-	$(RM) $(call platformpth, $(buildDir)/*)
-
-clean-all: clean
-	$(RM) $(call platformpth, lib)
-	$(RM) $(call platformpth, include)
-	$(RM) $(call platformpth, vendor/**)
-
