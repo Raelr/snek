@@ -1,7 +1,7 @@
 rwildcard = $(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
 platformpth = $(subst /,$(PATHSEP),$1)
 
-runVendorCmd = cd vendor/$1 $(THEN) $2
+runVendorCmd = cd $(call platformpth,vendor/$1) $(THEN) $2
 exportEnv = export $1=$2
 
 buildDir := bin
@@ -216,11 +216,11 @@ endif #End of VULKAN_SDK check
 
 setup-vulkan-loader:
 	cd vendor $(THEN) $(call clone,https://github.com/KhronosGroup/Vulkan-Loader.git)
-	$(call MKDIR, $(call platformpth, vendor/Vulkan-Loader/build))
+	$(call MKDIR,$(call platformpth, vendor/Vulkan-Loader/build))
 
-	$(call runVendorCmd,Vulkan-Loader/build,$(call platformpth,../scripts/update_deps.py))
-	$(call runVendorCmd,Vulkan-Loader/build,cmake -C helper.cmake ..)
-	$(call runVendorCmd,Vulkan-Loader/build,cmake --build . --config Release)
+	$(call runVendorCmd,$(call platformpth,Vulkan-Loader/build),$(call platformpth,../scripts/update_deps.py))
+	$(call runVendorCmd,$(call platformpth,Vulkan-Loader/build),cmake -C helper.cmake ..)
+	$(call runVendorCmd,$(call platformpth,Vulkan-Loader/build),cmake --build . --config Release)
 
 	$(call MKDIR,$(call platformpth,lib/$(platform)))
 
