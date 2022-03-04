@@ -17,6 +17,7 @@ jobs:
 
         # Setup dependencies
       - name: Setup dependencies
+        shell: pwsh
         run: mingw32-make setup
 
         # Compile the project with dependencies
