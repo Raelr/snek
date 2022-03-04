@@ -26,26 +26,32 @@ ifeq ($(OS),Windows_NT)
     linkFlags += -Wl,--allow-multiple-definition -pthread -lopengl32 -lgdi32 -lwinmm -mwindows -static -static-libgcc -static-libstdc++
     THEN := &&
     PATHSEP := \$(BLANK)
-    MKDIR = if not exist $1 mkdir $1;
-    RMDIR = -rmdir /s /q $1
-    RM = -del /q $1 $(THEN) for /d %%x in ($1) do @rd /s /q "%%x"
+    MKDIR = -mkdir $1;
+    RMDIR = rmdir /s /q $1
+    directories = $(sort $(dir $(wildcard ./$1/*/.)))
+    CLEAN_FOLDER = $(foreach dir,$(call directories,$1),$(call RMDIR,"$(call platformpth, $(dir)")),) 
+    CLEAN_FILES = del /s /q $1
 
     COPY = -robocopy "$(call platformpth,$1)" "$(call platformpth,$2)" $3
-	libSuffix = dll
+    libSuffix = dll
 
     generator := "MinGW Makefiles"
     volkDefines = VK_USE_PLATFORM_WIN32_KHR
+
     loaderInstallDir := vendor/Vulkan-Loader/build/loader/Release
+    validationLayersInstallDir := vendor/Vulkan-ValidationLayers/build/layers/Release
+    validationLayersDllInstallDir := $(validationLayersInstallDir)
 
     export GLSLC $(call platformpth,$(VULKAN_SDK)/bin/glslangValidator)
 
     clean:
-		$(call RM,$(call platformpth,$(buildDir)/*))
+		$(call CLEAN_FOLDER,$(buildDir))
+		$(call CLEAN_FILES,$(buildDir))
 
     clean-all: clean
-		$(call RMDIR,$(call platformpth,lib))
-		$(call RMDIR,$(call platformpth,include))
-		$(call RM,$(call platformpth,vendor\*))
+		-$(call RMDIR,lib)
+		-$(call RMDIR,include)
+		$(call CLEAN_FOLDER,vendor)
 else 
     UNAMEOS := $(shell uname)
     ifeq ($(UNAMEOS), Linux)
@@ -74,6 +80,8 @@ else
 
     generator := "Unix Makefiles"
     loaderInstallDir := vendor/Vulkan-Loader/build/loader
+    validationLayersInstallDir := vendor/Vulkan-ValidationLayers/build/share/vulkan/explicit_layer.d
+    validationLayersDllInstallDir := vendor/Vulkan-ValidationLayers/build/layers/
 
     PATHSEP := /
     MKDIR = mkdir -p $1
@@ -87,7 +95,7 @@ else
     clean-all: clean
 		$(RM) $(call platformpth,lib)
 		$(RM) $(call platformpth,include)
-		$(RM) $(call platformpth,platformpth,vendor/**)
+		$(RM) $(call platformpth,vendor/**)
 endif
 
 # Lists phony targets for Makefile
@@ -100,7 +108,7 @@ ifndef VULKAN_SDK
     vulkanIncludes := include/vulkan
 
 	ifndef DYLD_LIBRARY_PATH
-        export DYLD_LIBRARY_PATH=$(CURDIR)/lib/macOS
+        export DYLD_LIBRARY_PATH=$(CURDIR)/lib/$(platform)
 	endif 
 
     # This is only required when using validation layers
@@ -133,8 +141,8 @@ ifndef VULKAN_SDK
         setup-validation-layers:
 			$(call updateSubmodule,Vulkan-ValidationLayers)
 
-			$(call runVendorCmd,Vulkan-ValidationLayers,$(MKDIR) $(call platformpth, build))
-			$(call runVendorCmd,Vulkan-ValidationLayers/build,../scripts/update_deps.py --dir ../external --config release)
+			$(call MKDIR,$(call platformpth,vendor/Vulkan-ValidationLayers/build))
+			$(call runVendorCmd,Vulkan-ValidationLayers/build,$(call platformpth,../scripts/update_deps.py --dir ../external --config release))
 			$(call runVendorCmd,Vulkan-ValidationLayers/build,cmake -C ../external/helper.cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=./ ..)
 			$(call runVendorCmd,Vulkan-ValidationLayers/build,cmake --build . --config Release)
 			$(call runVendorCmd,Vulkan-ValidationLayers/build,cmake --install .)
@@ -143,8 +151,8 @@ ifndef VULKAN_SDK
 
 			$(call COPY,vendor/Vulkan-ValidationLayers/external/Vulkan-Headers/include/vulkan,include/vulkan,**.h)
 			$(call COPY,vendor/Vulkan-ValidationLayers/external/Vulkan-Headers/include/vulkan,include/vulkan,**.hpp)
-			$(call COPY,vendor/Vulkan-ValidationLayers/build/share/vulkan/explicit_layer.d,include/vulkan/explicit_layer.d,**.json)
-			$(call COPY,vendor/Vulkan-ValidationLayers/build/layers/,lib/macOS,libVkLayer_khronos_validation.$(libSuffix))
+			$(call COPY,$(validationLayersInstallDir),include/vulkan/explicit_layer.d,**.json)
+			$(call COPY,$(validationLayersDllInstallDir),lib/$(platform),**.$(libSuffix))
 
         # MacOS requires the extra step of seting up MoltenVK 
         ifeq ($(UNAMEOS), Darwin)
