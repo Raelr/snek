@@ -26,7 +26,7 @@ ifeq ($(OS),Windows_NT)
     linkFlags += -Wl,--allow-multiple-definition -pthread -lopengl32 -lgdi32 -lwinmm -mwindows -static -static-libgcc -static-libstdc++
     THEN := &&
     PATHSEP := \$(BLANK)
-    MKDIR = if not exist $1 mkdir $1
+    MKDIR = if not exist $1 mkdir $1;
     RMDIR = -rmdir /s /q $1
     RM = -del /q $1 $(THEN) for /d %%x in ($1) do @rd /s /q "%%x"
 
