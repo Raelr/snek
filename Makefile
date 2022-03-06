@@ -220,8 +220,9 @@ setup-vulkan-loader:
 	
 	ls "$(call platformpth,vendor/Vulkan-Loader)"
 	ls "$(call platformpth,vendor/Vulkan-Loader/scripts)"
+	
+	cd "$(call platformpth,vendor/Vulkan-Loader/build)" $(THEN) "$(call platformpth,../scripts/update_deps.py)"
 
-	$(call runVendorCmd,$(call platformpth,Vulkan-Loader),ls scripts)
 	$(call runVendorCmd,$(call platformpth,Vulkan-Loader/build),"$(call platformpth,../scripts/update_deps.py)")
 	$(call runVendorCmd,$(call platformpth,Vulkan-Loader/build),cmake -C helper.cmake ..)
 	$(call runVendorCmd,$(call platformpth,Vulkan-Loader/build),cmake --build . --config Release)
