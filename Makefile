@@ -29,7 +29,7 @@ ifeq ($(OS),Windows_NT)
     MKDIR = -mkdir $1;
     RMDIR = rmdir /s /q $1
     directories = $(sort $(dir $(wildcard ./$1/*/.)))
-    CLEAN_FOLDER = $(foreach dir,$(call directories,$1),$(call RMDIR,"$(call platformpth, $(dir)")),) 
+    CLEAN_FOLDER = $(foreach dir,$(call directories,$1),$(call RMDIR,"$(call platformpth,$(dir)")),) 
     CLEAN_FILES = del /s /q $1
 
     COPY = -robocopy "$(call platformpth,$1)" "$(call platformpth,$2)" $3
@@ -216,9 +216,9 @@ endif #End of VULKAN_SDK check
 
 setup-vulkan-loader:
 	cd vendor $(THEN) $(call clone,https://github.com/KhronosGroup/Vulkan-Loader.git)
-	$(call MKDIR,$(call platformpth, vendor/Vulkan-Loader/build))
+	-$(call MKDIR,$(call platformpth, vendor/Vulkan-Loader/build))
 
-	$(call runVendorCmd,$(call platformpth,Vulkan-Loader/build),$(call platformpth,../scripts/update_deps.py))
+	$(call runVendorCmd,$(call platformpth,Vulkan-Loader/build),$(call platformpth,..//scripts//update_deps.py))
 	$(call runVendorCmd,$(call platformpth,Vulkan-Loader/build),cmake -C helper.cmake ..)
 	$(call runVendorCmd,$(call platformpth,Vulkan-Loader/build),cmake --build . --config Release)
 
