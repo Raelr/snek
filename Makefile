@@ -217,6 +217,9 @@ endif #End of VULKAN_SDK check
 setup-vulkan-loader:
 	cd vendor $(THEN) $(call clone,https://github.com/KhronosGroup/Vulkan-Loader.git)
 	$(call MKDIR,$(call platformpth, vendor/Vulkan-Loader/build))
+	
+	ls "$(call platformpth,vendor/Vulkan-Loader)"
+	ls "$(call platformpth,vendor/Vulkan-Loader/scripts)"
 
 	$(call runVendorCmd,$(call platformpth,Vulkan-Loader),ls scripts)
 	$(call runVendorCmd,$(call platformpth,Vulkan-Loader/build),"$(call platformpth,../scripts/update_deps.py)")
