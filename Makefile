@@ -27,13 +27,13 @@ ifeq ($(OS),Windows_NT)
     linkFlags += -Wl,--allow-multiple-definition -pthread -lopengl32 -lgdi32 -lwinmm -mwindows -static -static-libgcc -static-libstdc++
     THEN := &&
     PATHSEP := \$(BLANK)
-    MKDIR = -mkdir $1
+    MKDIR = mkdir $1
     RMDIR = rmdir /s /q $1
     directories = $(sort $(dir $(wildcard ./$1/*/.)))
-    CLEAN_FOLDER = $(foreach dir,$(call directories,$1),$(call RMDIR,"$(call platformpth,$(dir)")),) 
+    CLEAN_FOLDER = $(foreach dir,$(call directories,$1),$(call RMDIR,$(call platformpth,$(dir))),) 
     CLEAN_FILES = del /s /q $1
 
-    COPY = -robocopy "$(call platformpth,$1)" "$(call platformpth,$2)" $3
+    COPY = -robocopy $(call platformpth,$1) $(call platformpth,$2) $3
     libSuffix = dll
 
     generator := "MinGW Makefiles"
@@ -220,8 +220,8 @@ setup-vulkan-loader:
 	$(call MKDIR,$(call platformpth,vendor/Vulkan-Loader/build))
 	
 	cd $(call platformpth,vendor/Vulkan-Loader/build) $(THEN) $(call platformpth,../scripts/update_deps.py)
-	cd $(call platformpth,vendor/Vulkan-Loader/build) $(THEN) $(call platformpth,cmake -C helper.cmake ..)
-	cd $(call platformpth,vendor/Vulkan-Loader/build) $(THEN) $(call platformpth,cmake --build . --config Release)
+	cd $(call platformpth,vendor/Vulkan-Loader/build) $(THEN) cmake -C helper.cmake ..
+	cd $(call platformpth,vendor/Vulkan-Loader/build) $(THEN) cmake --build . --config Release
 
 	$(call MKDIR,$(call platformpth,lib/$(platform)))
 
@@ -238,7 +238,7 @@ setup-glfw:
 setup-volk:
 	$(call updateSubmodule,volk)
 
-	$(call MKDIR, $(call platformpth, $(call platformpth, include/volk)))
+	$(call MKDIR,$(call platformpth,$(call platformpth,include/volk)))
 
 	$(call COPY,vendor/volk,include/volk,volk.h)
 	$(call COPY,vendor/volk,include/volk,volk.c)
