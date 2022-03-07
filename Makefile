@@ -219,9 +219,9 @@ setup-vulkan-loader:
 	cd vendor $(THEN) $(call clone,https://github.com/KhronosGroup/Vulkan-Loader.git)
 	$(call MKDIR,$(call platformpth,vendor/Vulkan-Loader/build))
 	
-	cd "$(call platformpth,vendor/Vulkan-Loader/build)" $(THEN) $(call platformpth,../scripts/update_deps.py)
-	cd "$(call platformpth,vendor/Vulkan-Loader/build)" $(THEN) $(call platformpth,cmake -C helper.cmake ..)
-	cd "$(call platformpth,vendor/Vulkan-Loader/build)" $(THEN) $(call platformpth,cmake --build . --config Release)
+	cd $(call platformpth,vendor/Vulkan-Loader/build) $(THEN) $(call platformpth,../scripts/update_deps.py)
+	cd $(call platformpth,vendor/Vulkan-Loader/build) $(THEN) $(call platformpth,cmake -C helper.cmake ..)
+	cd $(call platformpth,vendor/Vulkan-Loader/build) $(THEN) $(call platformpth,cmake --build . --config Release)
 
 	$(call MKDIR,$(call platformpth,lib/$(platform)))
 
