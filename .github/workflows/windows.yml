@@ -14,9 +14,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      
-      - run: mingw32-make setup
-        shell: pwsh
 
         # Setup dependencies
       - name: Setup dependencies
