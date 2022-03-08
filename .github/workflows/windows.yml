@@ -20,6 +20,7 @@ jobs:
         shell: cmd
         run: |
           setlocal enableextensions enabledelayedexpansion
+          mingw32-make test
           mingw32-make setup
           endlocal
 
