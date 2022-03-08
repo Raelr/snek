@@ -20,8 +20,11 @@ jobs:
 
         # Setup dependencies
       - name: Setup dependencies
-        shell: pwsh
-        run: mingw32-make setup
+        shell: cmd
+        run: |
+          setlocal enableextensions enabledelayedexpansion
+          mingw32-make setup
+          endlocal
 
         # Compile the project with dependencies
       - name: Compile Project
