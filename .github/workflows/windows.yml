@@ -12,12 +12,15 @@ jobs:
   build:
     runs-on: windows-latest
 
+    defaults:
+      run:
+        shell: cmd
+
     steps:
       - uses: actions/checkout@v2
 
         # Setup dependencies
       - name: Setup dependencies
-        shell: cmd
         run: |
           setlocal enableextensions enabledelayedexpansion
           mingw32-make test
