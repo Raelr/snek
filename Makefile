@@ -216,7 +216,7 @@ else # If VULKAN_SDK is defined
 endif #End of VULKAN_SDK check
 
 test:
-	mkdir test\test
+	mkdir \test\test
 	mkdir test/otherTest
 	mkdir "test\thirdTest"
 
@@ -237,7 +237,6 @@ setup-vulkan-loader:
 setup-glfw:
 	$(call updateSubmodule,glfw)
 	cd vendor/glfw $(THEN) cmake -G $(generator) . $(THEN) "$(MAKE)" 
-	mkdir "lib"
 	$(call MKDIR,lib/$(platform))
 	$(call MKDIR,$(call platformpth,lib/$(platform)))
 	$(call COPY,vendor/glfw/src,lib/$(platform),libglfw3.a)
