@@ -36,7 +36,7 @@ ifeq ($(OS),Windows_NT)
     SHELL_CMD = $(CLI_SHELL) "$1"
     MAKE ?= mingw32-make
 
-    COPY = robocopy $(call platformpth,$1) $(call platformpth,$2) $3
+    COPY = -robocopy $(call platformpth,$1) $(call platformpth,$2) $3
     libSuffix = dll
 
     generator := "MinGW Makefiles"
@@ -205,7 +205,7 @@ ifndef VULKAN_SDK
 			$(call SHELL_CMD,cd $(call platformpth,vendor/glslang/build) $(THEN) cmake -G $(generator) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$(pwd)/install" ..)
 			cd $(call platformpth,vendor/glslang/build/StandAlone) $(THEN) "$(MAKE)"
 			-$(call SHELL_CMD,$(call MKDIR,$(call platformpth, lib/$(platform))))
-			$(call SHELL_CMD,$(call COPY,vendor/glslang/build/glslang,lib/$(platform),libglslang.a))
+			$(call COPY,vendor/glslang/build/glslang,lib/$(platform),libglslang.a)
 
         setup-vulkan-headers:
 			$(call SHELL_CMD,$(call updateSubmodule,Vulkan-Headers))
