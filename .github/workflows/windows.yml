@@ -23,7 +23,7 @@ jobs:
       - name: Setup dependencies
         run: |
           setlocal enableextensions enabledelayedexpansion
-          mingw32-make setup
+          mingw32-make MAKE=mingw32-make setup
           endlocal
 
         # Compile the project with dependencies
