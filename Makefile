@@ -203,7 +203,7 @@ ifndef VULKAN_SDK
 			$(call SHELL_CMD,$(call updateSubmodule,glslang))
 			-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,vendor/glslang/build)))
 			$(call SHELL_CMD,cd $(call platformpth,vendor/glslang/build) $(THEN) cmake -G $(generator) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$(pwd)/install" ..)
-			$(call SHELL_CMD,cd $(call platformpth,vendor/glslang/build/StandAlone) $(THEN) $(MAKE))
+			cd $(call platformpth,vendor/glslang/build/StandAlone) $(THEN) "$(MAKE)"
 			-$(call SHELL_CMD,$(call MKDIR,$(call platformpth, lib/$(platform))))
 			$(call SHELL_CMD,$(call COPY,vendor/glslang/build/glslang,lib/$(platform),libglslang.a))
 
@@ -233,18 +233,18 @@ setup-vulkan-loader:
 # Volk and GLFW are relevant for all builds and platforms, therefore
 # we make these targets available for everyone
 setup-glfw:
-	$(call SHELL_CMD,$(call updateSubmodule,glfw))
+	$(call updateSubmodule,glfw)
 	cd $(call platformpth,vendor/glfw) $(THEN) cmake -G $(generator) . $(THEN) "$(MAKE)"
 	-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,lib/$(platform))))
-	$(call SHELL_CMD,$(call COPY,vendor/glfw/src,lib/$(platform),libglfw3.a))
+	$(call COPY,vendor/glfw/src,lib/$(platform),libglfw3.a)
 
 setup-volk:
-	$(call SHELL_CMD,$(call updateSubmodule,volk))
+	$(call updateSubmodule,volk)
 
 	-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,include/volk)))
 
-	$(call SHELL_CMD,$(call COPY,vendor/volk,include/volk,volk.h))
-	$(call SHELL_CMD,$(call COPY,vendor/volk,include/volk,volk.c))
+	$(call COPY,vendor/volk,include/volk,volk.h)
+	$(call COPY,vendor/volk,include/volk,volk.c)
 
 # Link the program and create the executable
 $(target): $(objects)
