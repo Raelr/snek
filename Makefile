@@ -203,7 +203,7 @@ ifndef VULKAN_SDK
 			$(call SHELL_CMD,$(call updateSubmodule,glslang))
 			-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,vendor/glslang/build)))
 			$(call SHELL_CMD,cd $(call platformpth,vendor/glslang/build) $(THEN) cmake -G $(generator) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$(pwd)/install" ..)
-			$(call SHELL_CMD,cd $(call platformpth,vendor/glslang/build/StandAlone) $(THEN) $(call platformpth,$(MAKE)))
+			$(call SHELL_CMD,cd $(call platformpth,vendor/glslang/build/StandAlone) $(THEN) $(MAKE))
 			-$(call SHELL_CMD,$(call MKDIR,$(call platformpth, lib/$(platform))))
 			$(call SHELL_CMD,$(call COPY,vendor/glslang/build/glslang,lib/$(platform),libglslang.a))
 
