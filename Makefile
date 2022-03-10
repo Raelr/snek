@@ -92,7 +92,7 @@ else
     COPY = cp $1$(PATHSEP)$3 $2
     THEN = ;
     RM = rm -rf
-    SHELL_CMD := $1
+    SHELL_CMD = $1
 
     clean:
 		$(RM) $(call platformpth,$(buildDir)/*)
