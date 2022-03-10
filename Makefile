@@ -234,7 +234,7 @@ setup-vulkan-loader:
 # we make these targets available for everyone
 setup-glfw:
 	$(call SHELL_CMD,$(call updateSubmodule,glfw))
-	$(call SHELL_CMD,cd $(call platformpth,vendor/glfw) $(THEN) cmake -G $(generator) . $(THEN) $(call platformpth,$(MAKE))
+	$(call SHELL_CMD,cd $(call platformpth,vendor/glfw) $(THEN) cmake -G $(generator) . $(THEN) $(call platformpth,$(MAKE)))
 	-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,lib/$(platform))))
 	$(call SHELL_CMD,$(call COPY,vendor/glfw/src,lib/$(platform),libglfw3.a))
 
