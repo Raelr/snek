@@ -215,10 +215,6 @@ else # If VULKAN_SDK is defined
     setup: setup-glfw setup-volk
 endif #End of VULKAN_SDK check
 
-test:
-	cmd.exe /c mkdir test\test
-	cmd.exe /c mkdir "test\thirdTest"
-
 setup-vulkan-loader:
 	cd vendor $(THEN) $(call clone,https://github.com/KhronosGroup/Vulkan-Loader.git)
 	$(call MKDIR,$(call platformpth,vendor/Vulkan-Loader/build))
@@ -236,7 +232,6 @@ setup-vulkan-loader:
 setup-glfw:
 	$(call updateSubmodule,glfw)
 	cd vendor/glfw $(THEN) cmake -G $(generator) . $(THEN) "$(MAKE)" 
-	$(call MKDIR,lib/$(platform))
 	$(call MKDIR,$(call platformpth,lib/$(platform)))
 	$(call COPY,vendor/glfw/src,lib/$(platform),libglfw3.a)
 
