@@ -216,9 +216,8 @@ else # If VULKAN_SDK is defined
 endif #End of VULKAN_SDK check
 
 test:
-	mkdir test\test
-	mkdir test/otherTest
-	mkdir "test\thirdTest"
+	cmd.exe /c mkdir test\test
+	cmd.exe /c mkdir "test\thirdTest"
 
 setup-vulkan-loader:
 	cd vendor $(THEN) $(call clone,https://github.com/KhronosGroup/Vulkan-Loader.git)
