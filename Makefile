@@ -209,26 +209,31 @@ ifndef VULKAN_SDK
 
         setup-vulkan-headers:
 			$(call SHELL_CMD,$(call updateSubmodule,Vulkan-Headers))
-			-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,include/vulkan)))
-			$(call SHELL_CMD,$(call COPY,vendor/Vulkan-Headers/include/vulkan,include/vulkan,**.h))
+			cd $(call platformpth,vendor/Vulkan-Headers) $(THEN) git checkout tags/v1.3.207
+			-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,vendor/Vulkan-Headers/build)))
 
-        setup: setup-glfw setup-volk setup-vulkan-loader setup-vulkan-headers setup-glslang
+			cd $(call platformpth,vendor/Vulkan-Headers/build) $(THEN) cmake -G $(generator) ..
+			cd $(call platformpth,vendor/Vulkan-Headers/build) $(THEN) cmake --build . --target install
+
+			-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,include/vulkan)))
+			-$(call COPY,vendor/Vulkan-Headers/include/vulkan,include/vulkan,**.h)
+
+        setup: setup-glfw setup-volk setup-vulkan-headers setup-vulkan-loader setup-glslang
+
+        setup-vulkan-loader:
+			$(call SHELL_CMD, cd vendor $(THEN) $(call clone,https://github.com/KhronosGroup/Vulkan-Loader.git))
+			-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,vendor/Vulkan-Loader/build)))
+
+			cd $(call platformpth,vendor/Vulkan-Loader/build) $(THEN) cmake -DVULKAN_HEADERS_INSTALL_DIR=$(CURDIR)/vendor/Vulkan-Headers/build/install ..
+			cd $(call platformpth,vendor/Vulkan-Loader/build) $(THEN) cmake --build . --config Release
+
+			-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,lib/$(platform))))
+			$(call COPY,$(loaderInstallDir),lib/$(platform),**.$(libSuffix))
     endif
 else # If VULKAN_SDK is defined
     vulkanIncludes := $(VULKAN_SDK)/include
     setup: setup-glfw setup-volk
 endif #End of VULKAN_SDK check
-
-setup-vulkan-loader:
-	$(call SHELL_CMD, cd vendor $(THEN) $(call clone,https://github.com/KhronosGroup/Vulkan-Loader.git))
-	-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,vendor/Vulkan-Loader/build)))
-
-	$(call SHELL_CMD,cd $(call platformpth,vendor/Vulkan-Loader/build) $(THEN) $(call platformpth,../scripts/update_deps.py))
-	$(call SHELL_CMD,cd $(call platformpth,vendor/Vulkan-Loader/build) $(THEN) cmake -C helper.cmake ..)
-	$(call SHELL_CMD,cd $(call platformpth,vendor/Vulkan-Loader/build) $(THEN) cmake --build . --config Release)
-
-	-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,lib/$(platform))))
-	$(call SHELL_CMD,$(call COPY,$(loaderInstallDir),lib/$(platform),**.$(libSuffix)))
 
 # Volk and GLFW are relevant for all builds and platforms, therefore
 # we make these targets available for everyone
