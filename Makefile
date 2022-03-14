@@ -64,6 +64,7 @@ else
         CXX ?= g++
         linkFlags += -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi
         libSuffix = so
+        NUMBER_OF_PROCESSORS := $(shell nproc)
 
         volkDefines = VK_USE_PLATFORM_XLIB_KHR
     endif
@@ -72,7 +73,8 @@ else
         platform := macOS
         CXX ?= clang++
         linkFlags += -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL
-		libSuffix = dylib
+        libSuffix = dylib
+        NUMBER_OF_PROCESSORS := $(shell sysctl -n hw.ncpu)
         
         volkDefines = VK_USE_PLATFORM_MACOS_MVK
 
@@ -203,16 +205,16 @@ ifndef VULKAN_SDK
 			$(call SHELL_CMD,$(call updateSubmodule,glslang))
 			-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,vendor/glslang/build)))
 			$(call SHELL_CMD,cd $(call platformpth,vendor/glslang/build) $(THEN) cmake -G $(generator) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$(pwd)/install" ..)
-			cd $(call platformpth,vendor/glslang/build/StandAlone) $(THEN) "$(MAKE)"
+			cd $(call platformpth,vendor/glslang/build/StandAlone) $(THEN) "$(MAKE)" -j$(NUMBER_OF_PROCESSORS)
 			-$(call SHELL_CMD,$(call MKDIR,$(call platformpth, lib/$(platform))))
 			$(call COPY,vendor/glslang/build/glslang,lib/$(platform),libglslang.a)
 
         setup-vulkan-headers:
 			$(call SHELL_CMD,$(call updateSubmodule,Vulkan-Headers))
-			cd $(call platformpth,vendor/Vulkan-Headers) $(THEN) git checkout tags/v1.3.207
+			cd $(call platformpth,vendor/Vulkan-Headers) $(THEN) git fetch --all --tags $(THEN) git checkout tags/v1.3.207
 			-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,vendor/Vulkan-Headers/build)))
 
-			cd $(call platformpth,vendor/Vulkan-Headers/build) $(THEN) cmake -G $(generator) ..
+			cd $(call platformpth,vendor/Vulkan-Headers/build) $(THEN) cmake -DCMAKE_INSTALL_PREFIX=install -G $(generator) ..
 			cd $(call platformpth,vendor/Vulkan-Headers/build) $(THEN) cmake --build . --target install
 
 			-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,include/vulkan)))
@@ -239,7 +241,8 @@ endif #End of VULKAN_SDK check
 # we make these targets available for everyone
 setup-glfw:
 	$(call updateSubmodule,glfw)
-	cd $(call platformpth,vendor/glfw) $(THEN) cmake -G $(generator) . $(THEN) "$(MAKE)"
+
+	cd $(call platformpth,vendor/glfw) $(THEN) cmake -G $(generator) . $(THEN) "$(MAKE)" -j$(NUMBER_OF_PROCESSORS)
 	-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,lib/$(platform))))
 	$(call COPY,vendor/glfw/src,lib/$(platform),libglfw3.a)
 
