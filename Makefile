@@ -94,7 +94,7 @@ else
     COPY = cp $1$(PATHSEP)$3 $2
     THEN = ;
     RM = rm -rf
-    SHELL_CMD = $1
+    SHELL_CMD =$1
 
     clean:
 		$(RM) $(call platformpth,$(buildDir)/*)
@@ -213,8 +213,9 @@ ifndef VULKAN_SDK
 			$(call SHELL_CMD,$(call updateSubmodule,Vulkan-Headers))
 			cd $(call platformpth,vendor/Vulkan-Headers) $(THEN) git fetch --all --tags $(THEN) git checkout tags/v1.3.207
 			-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,vendor/Vulkan-Headers/build)))
+			ls $(call platformpth,vendor/Vulkan-Headers/build)
 
-			$(call SHELL_CMD,cd $(call platformpth,vendor/Vulkan-Headers/build) $(THEN) cmake -DCMAKE_INSTALL_PREFIX=install -G $(generator) ..)
+			cd $(call platformpth,vendor/Vulkan-Headers/build) $(THEN) cmake -DCMAKE_INSTALL_PREFIX=install -G $(generator) ..
 			cd $(call platformpth,vendor/Vulkan-Headers/build) $(THEN) cmake --build . --target install
 
 			-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,include/vulkan)))
