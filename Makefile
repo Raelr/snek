@@ -33,7 +33,7 @@ ifeq ($(OS),Windows_NT)
     directories = $(sort $(dir $(wildcard ./$1/*/.)))
     CLEAN_FOLDER = $(foreach dir,$(call directories,$1),$(call RMDIR,$(call platformpth,$(dir))),) 
     CLEAN_FILES = del /s /q $1
-    SHELL_CMD = $(CLI_SHELL) "setlocal enableextensions enabledelayedexpansion $(THEN) $1"
+    SHELL_CMD = $(CLI_SHELL) "setlocal enableextensions enabledelayedexpansion $1"
     MAKE ?= mingw32-make
 
     COPY = -robocopy $(call platformpth,$1) $(call platformpth,$2) $3
@@ -212,7 +212,7 @@ ifndef VULKAN_SDK
         setup-vulkan-headers:
 			$(call SHELL_CMD,$(call updateSubmodule,Vulkan-Headers))
 			cd $(call platformpth,vendor/Vulkan-Headers) $(THEN) git fetch --all --tags $(THEN) git checkout tags/v1.3.207
-			-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,vendor/Vulkan-Headers/build)))
+			$(call SHELL_CMD,$(call MKDIR,$(call platformpth,vendor/Vulkan-Headers/build)))
 			ls $(call platformpth,vendor/Vulkan-Headers)
 
 			cd $(call platformpth,vendor/Vulkan-Headers/build) $(THEN) cmake -DCMAKE_INSTALL_PREFIX=install -G $(generator) ..
