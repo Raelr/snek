@@ -213,7 +213,6 @@ ifndef VULKAN_SDK
 			$(call SHELL_CMD,$(call updateSubmodule,Vulkan-Headers))
 			cd $(call platformpth,vendor/Vulkan-Headers) $(THEN) git fetch --all --tags $(THEN) git checkout tags/v1.3.207
 			cd $(call platformpth,vendor/Vulkan-Headers) $(THEN) $(call MKDIR,build)
-			$(call SHELL_CMD,$(call MKDIR,$(call platformpth,vendor/Vulkan-Headers/build)))
 			ls $(call platformpth,vendor/Vulkan-Headers)
 
 			cd $(call platformpth,vendor/Vulkan-Headers/build) $(THEN) cmake -DCMAKE_INSTALL_PREFIX=install -G $(generator) ..
@@ -226,7 +225,7 @@ ifndef VULKAN_SDK
 
         setup-vulkan-loader:
 			$(call SHELL_CMD, cd vendor $(THEN) $(call clone,https://github.com/KhronosGroup/Vulkan-Loader.git))
-			-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,vendor/Vulkan-Loader/build)))
+			cd $(call platformpth,vendor/Vulkan-Loader) $(THEN) $(call MKDIR,build)
 
 			cd $(call platformpth,vendor/Vulkan-Loader/build) $(THEN) cmake -DVULKAN_HEADERS_INSTALL_DIR=$(CURDIR)/vendor/Vulkan-Headers/build/install ..
 			cd $(call platformpth,vendor/Vulkan-Loader/build) $(THEN) cmake --build . --config Release
