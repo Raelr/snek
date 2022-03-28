@@ -33,7 +33,7 @@ ifeq ($(OS),Windows_NT)
     directories = $(sort $(dir $(wildcard ./$1/*/.)))
     CLEAN_FOLDER = $(foreach dir,$(call directories,$1),$(call RMDIR,$(call platformpth,$(dir))),) 
     CLEAN_FILES = del /s /q $1
-    SHELL_CMD = $(CLI_SHELL) "$1"
+    SHELL_CMD = $(CLI_SHELL) "setlocal enableextensions enabledelayedexpansion $(THEN) $1"
     MAKE ?= mingw32-make
 
     COPY = -robocopy $(call platformpth,$1) $(call platformpth,$2) $3
