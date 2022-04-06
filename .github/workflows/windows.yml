@@ -28,7 +28,10 @@ jobs:
 
         # Compile the project with dependencies
       - name: Compile Project
-        run: mingw32-make bin/app
+        run: |
+          setlocal enableextensions enabledelayedexpansion
+          mingw32-make bin/app
+          endlocal
 
         # Export the binary as artifact
       - name: Export binary
