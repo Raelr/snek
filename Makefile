@@ -203,7 +203,7 @@ ifndef VULKAN_SDK
         # we aren't using the SDK and don't want to use validation layers 
         setup-glslang:
 			$(call SHELL_CMD,$(call updateSubmodule,glslang))
-			-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,vendor/glslang/build)))
+            cd $(call platformpth,vendor/glslang) $(THEN) $(call MKDIR,build)
 			$(call SHELL_CMD,cd $(call platformpth,vendor/glslang/build) $(THEN) cmake -G $(generator) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$(pwd)/install" ..)
 			cd $(call platformpth,vendor/glslang/build/StandAlone) $(THEN) "$(MAKE)" -j$(NUMBER_OF_PROCESSORS)
 			-$(call SHELL_CMD,$(call MKDIR,$(call platformpth, lib/$(platform))))
