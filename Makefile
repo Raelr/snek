@@ -268,7 +268,7 @@ $(buildDir)/%.spv: %
 
 # Compile objects to the build directory
 $(buildDir)/%.o: src/%.cpp Makefile
-	-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,$(@D))))
+	$(call MKDIR,$(call platformpth,$(@D)))
 	$(CXX) -MMD -MP -c $(compileFlags) $< -o $@ $(CXXFLAGS) -D$(volkDefines)
 
 execute: 
