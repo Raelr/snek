@@ -28,7 +28,7 @@ ifeq ($(OS),Windows_NT)
     CLI_SHELL := cmd.exe /c
     THEN := &&
     PATHSEP := \$(BLANK)
-    MKDIR = mkdir $1 
+    MKDIR = $(CURDIR)\scripts\windows\mkdir.bat $1 
     RMDIR = rmdir /s /q $1
     directories = $(sort $(dir $(wildcard ./$1/*/.)))
     CLEAN_FOLDER = $(foreach dir,$(call directories,$1),$(call RMDIR,$(call platformpth,$(dir))),) 
@@ -245,11 +245,8 @@ endif #End of VULKAN_SDK check
 setup-glfw:
 	$(call updateSubmodule,glfw)
 
-	$(call SHELL_CMD,mkdir "hello/there")
-	ls hello
-
 	cd $(call platformpth,vendor/glfw) $(THEN) cmake -G $(generator) . $(THEN) "$(MAKE)" -j$(NUMBER_OF_PROCESSORS)
-	-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,lib/$(platform))))
+	$(call SHELL_CMD,$(call MKDIR,$(call platformpth,lib/$(platform))))
 	$(call COPY,vendor/glfw/src,lib/$(platform),libglfw3.a)
 
 setup-volk:
