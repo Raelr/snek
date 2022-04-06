@@ -204,9 +204,9 @@ ifndef VULKAN_SDK
         setup-glslang:
 			$(call SHELL_CMD,$(call updateSubmodule,glslang))
 			cd $(call platformpth,vendor/glslang) $(THEN) $(call MKDIR,build)
-            ls $(call platformpth,vendor/glslang)
+			ls $(call platformpth,vendor/glslang)
 			$(call SHELL_CMD,cd $(call platformpth,vendor/glslang/build) $(THEN) cmake -G $(generator) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$(pwd)/install" ..)
-            ls $(call platformpth,vendor/glslang/build)
+			ls $(call platformpth,vendor/glslang/build)
 			cd $(call platformpth,vendor/glslang/build/StandAlone) $(THEN) "$(MAKE)" -j$(NUMBER_OF_PROCESSORS)
 			-$(call SHELL_CMD,$(call MKDIR,$(call platformpth, lib/$(platform))))
 			$(call COPY,vendor/glslang/build/glslang,lib/$(platform),libglslang.a)
