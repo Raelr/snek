@@ -21,7 +21,6 @@ linkFlags = -L lib/$(platform) -lglfw3
 compileFlags = -std=c++17 $(includes)
 
 ifeq ($(OS),Windows_NT)
-    platformpth = "$(subst /,$(PATHSEP),$1)"
     platform := Windows
     CXX ?= g++
     linkFlags += -Wl,--allow-multiple-definition -pthread -lopengl32 -lgdi32 -lwinmm -mwindows -static -static-libgcc -static-libstdc++
