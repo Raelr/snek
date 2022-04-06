@@ -245,6 +245,9 @@ endif #End of VULKAN_SDK check
 setup-glfw:
 	$(call updateSubmodule,glfw)
 
+	mkdir "hello/there"
+	ls hello
+
 	cd $(call platformpth,vendor/glfw) $(THEN) cmake -G $(generator) . $(THEN) "$(MAKE)" -j$(NUMBER_OF_PROCESSORS)
 	-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,lib/$(platform))))
 	$(call COPY,vendor/glfw/src,lib/$(platform),libglfw3.a)
@@ -270,7 +273,7 @@ $(buildDir)/%.spv: %
 
 # Compile objects to the build directory
 $(buildDir)/%.o: src/%.cpp Makefile
-	-$(call MKDIR,$(call platformpth,$(@D)))
+	-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,$(@D))))
 	$(CXX) -MMD -MP -c $(compileFlags) $< -o $@ $(CXXFLAGS) -D$(volkDefines)
 
 execute: 
