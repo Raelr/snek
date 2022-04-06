@@ -21,13 +21,14 @@ linkFlags = -L lib/$(platform) -lglfw3
 compileFlags = -std=c++17 $(includes)
 
 ifeq ($(OS),Windows_NT)
+    platformpth = "$(subst /,$(PATHSEP),$1)"
     platform := Windows
     CXX ?= g++
     linkFlags += -Wl,--allow-multiple-definition -pthread -lopengl32 -lgdi32 -lwinmm -mwindows -static -static-libgcc -static-libstdc++
     CLI_SHELL := cmd.exe /c
     THEN := &&
     PATHSEP := \$(BLANK)
-    MKDIR = $(call platformpth,$(CURDIR))\scripts\windows\mkdir.bat $1 
+    MKDIR = mkdir $1 
     RMDIR = rmdir /s /q $1
     directories = $(sort $(dir $(wildcard ./$1/*/.)))
     CLEAN_FOLDER = $(foreach dir,$(call directories,$1),$(call RMDIR,$(call platformpth,$(dir))),) 
@@ -203,22 +204,19 @@ ifndef VULKAN_SDK
         setup-glslang:
 			$(call SHELL_CMD,$(call updateSubmodule,glslang))
 			cd $(call platformpth,vendor/glslang) $(THEN) $(call MKDIR,build)
-			ls $(call platformpth,vendor/glslang)
 			cd $(call platformpth,vendor/glslang/build) $(THEN) cmake -G $(generator) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$(pwd)/install" ..
-			ls $(call platformpth,vendor/glslang/build)
 			cd $(call platformpth,vendor/glslang/build/StandAlone) $(THEN) "$(MAKE)" -j$(NUMBER_OF_PROCESSORS)
 			-$(call SHELL_CMD,$(call MKDIR,$(call platformpth, lib/$(platform))))
 			$(call COPY,vendor/glslang/build/glslang,lib/$(platform),libglslang.a)
 
         setup-vulkan-headers:
 			$(call SHELL_CMD,$(call updateSubmodule,Vulkan-Headers))
+			cd $(call platformpth,vendor/Vulkan-Headers) $(THEN) git fetch --all --tags $(THEN) git checkout tags/v1.3.211
+			cd $(call platformpth,vendor/Vulkan-Headers) $(THEN) $(call MKDIR,build)
+			ls $(call platformpth,vendor/Vulkan-Headers)
 
-			$(call SHELL_CMD,cd $(call platformpth,vendor/Vulkan-Headers) $(THEN) git fetch --all --tags $(THEN) git checkout tags/v1.3.211)
-			$(call SHELL_CMD,cd $(call platformpth,vendor/Vulkan-Headers) $(THEN) $(call MKDIR,build))
-#			cd $(call platformpth,vendor/Vulkan-Headers) $(THEN) $(call MKDIR,build)
-
-			$(call SHELL_CMD,cd $(call platformpth,vendor/Vulkan-Headers/build) $(THEN) cmake -DCMAKE_INSTALL_PREFIX=install -G $(generator) ..)
-			$(call SHELL_CMD,cd $(call platformpth,vendor/Vulkan-Headers/build) $(THEN) cmake --build . --target install)
+			cd $(call platformpth,vendor/Vulkan-Headers/build) $(THEN) cmake -DCMAKE_INSTALL_PREFIX=install -G $(generator) ..
+			cd $(call platformpth,vendor/Vulkan-Headers/build) $(THEN) cmake --build . --target install
 
 			-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,include/vulkan)))
 			-$(call COPY,vendor/Vulkan-Headers/include/vulkan,include/vulkan,**.h)
@@ -244,9 +242,12 @@ endif #End of VULKAN_SDK check
 # we make these targets available for everyone
 setup-glfw:
 	$(call updateSubmodule,glfw)
-	$(call SHELL_CMD,cd $(call platformpth,vendor/glfw) $(THEN) cmake -G $(generator) . $(THEN) "$(MAKE)" -j$(NUMBER_OF_PROCESSORS))
-	
-	$(call SHELL_CMD,$(call MKDIR,$(call platformpth,lib/$(platform))))
+
+	$(call SHELL_CMD,mkdir "hello/there")
+	ls hello
+
+	cd $(call platformpth,vendor/glfw) $(THEN) cmake -G $(generator) . $(THEN) "$(MAKE)" -j$(NUMBER_OF_PROCESSORS)
+	-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,lib/$(platform))))
 	$(call COPY,vendor/glfw/src,lib/$(platform),libglfw3.a)
 
 setup-volk:
