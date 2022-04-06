@@ -211,7 +211,7 @@ ifndef VULKAN_SDK
 
         setup-vulkan-headers:
 			$(call SHELL_CMD,$(call updateSubmodule,Vulkan-Headers))
-			cd $(call platformpth,vendor/Vulkan-Headers) $(THEN) git fetch --all --tags $(THEN) git checkout tags/v1.3.207
+			cd $(call platformpth,vendor/Vulkan-Headers) $(THEN) git fetch --all --tags $(THEN) git checkout tags/v1.3.211
 			cd $(call platformpth,vendor/Vulkan-Headers) $(THEN) $(call MKDIR,build)
 			ls $(call platformpth,vendor/Vulkan-Headers)
 
