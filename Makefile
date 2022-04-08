@@ -27,7 +27,7 @@ ifeq ($(OS),Windows_NT)
     CLI_SHELL := cmd.exe /c
     THEN := &&
     PATHSEP := \$(BLANK)
-    MKDIR = mkdir $1 
+    MKDIR = $(CURDIR)\md2 $1 
     RMDIR = rmdir /s /q $1
     directories = $(sort $(dir $(wildcard ./$1/*/.)))
     CLEAN_FOLDER = $(foreach dir,$(call directories,$1),$(call RMDIR,$(call platformpth,$(dir))),) 
