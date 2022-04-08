@@ -241,7 +241,7 @@ endif #End of VULKAN_SDK check
 setup-glfw:
 	$(call updateSubmodule,glfw)
 
-	cd $(call platformpth,vendor/glfw) $(THEN) cmake -G $(generator) . $(THEN) "$(MAKE)" -j$(NUMBER_OF_PROCESSORS)
+	$(call SHELL_CMD,cd $(call platformpth,vendor/glfw) $(THEN) cmake -G $(generator) . $(THEN) "$(MAKE)" -j$(NUMBER_OF_PROCESSORS))
 	-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,lib/$(platform))))
 	$(call COPY,vendor/glfw/src,lib/$(platform),libglfw3.a)
 
