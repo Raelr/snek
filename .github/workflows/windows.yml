@@ -22,16 +22,12 @@ jobs:
         # Setup dependencies
       - name: Setup dependencies
         run: |
-          setlocal enableextensions enabledelayedexpansion
           mingw32-make setup
-          endlocal
 
         # Compile the project with dependencies
       - name: Compile Project
         run: |
-          setlocal enableextensions enabledelayedexpansion
           mingw32-make bin/app
-          endlocal
 
         # Export the binary as artifact
       - name: Export binary
