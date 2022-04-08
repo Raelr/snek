@@ -21,14 +21,14 @@ linkFlags = -L lib/$(platform) -lglfw3
 compileFlags = -std=c++17 $(includes)
 
 ifeq ($(OS),Windows_NT)
-	platformpth = "$(subst /,$(PATHSEP),$1)"
+    platformpth = "$(subst /,$(PATHSEP),$1)"
     platform := Windows
     CXX ?= g++
     linkFlags += -Wl,--allow-multiple-definition -pthread -lopengl32 -lgdi32 -lwinmm -mwindows -static -static-libgcc -static-libstdc++
     CLI_SHELL := cmd.exe /c
     THEN := &&
     PATHSEP := \$(BLANK)
-    MKDIR = $(CURDIR)\md2 $1 
+    MKDIR = $(call platformpth,$(CURDIR)/md2) $1 
     RMDIR = rmdir /s /q $1
     directories = $(sort $(dir $(wildcard ./$1/*/.)))
     CLEAN_FOLDER = $(foreach dir,$(call directories,$1),$(call RMDIR,$(call platformpth,$(dir))),) 
