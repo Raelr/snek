@@ -25,7 +25,6 @@ ifeq ($(OS),Windows_NT)
     platform := Windows
     CXX ?= g++
     linkFlags += -Wl,--allow-multiple-definition -pthread -lopengl32 -lgdi32 -lwinmm -mwindows -static -static-libgcc -static-libstdc++
-    CLI_SHELL := cmd.exe /c
     THEN := &&
     PATHSEP := \$(BLANK)
     MKDIR = $(call platformpth,$(CURDIR)/md2.bat) $1 
@@ -33,7 +32,6 @@ ifeq ($(OS),Windows_NT)
     directories = $(sort $(dir $(wildcard ./$1/*/.)))
     CLEAN_FOLDER = $(foreach dir,$(call directories,$1),$(call RMDIR,$(call platformpth,$(dir))),) 
     CLEAN_FILES = del /s /q $1
-    SHELL_CMD = $(CLI_SHELL) "$1"
     MAKE = mingw32-make
 
     COPY = -robocopy $(call platformpth,$1) $(call platformpth,$2) $3
@@ -94,7 +92,6 @@ else
     COPY = cp $1$(PATHSEP)$3 $2
     THEN = ;
     RM = rm -rf
-    SHELL_CMD = $1
 
     clean:
 		$(RM) $(call platformpth,$(buildDir)/*)
@@ -202,11 +199,11 @@ ifndef VULKAN_SDK
         # Building GLSLANG and pulling in the Vulkan headers is only relevant when 
         # we aren't using the SDK and don't want to use validation layers 
         setup-glslang:
-			$(call SHELL_CMD,$(call updateSubmodule,glslang))
+			$(call updateSubmodule,glslang)
 			cd $(call platformpth,vendor/glslang) $(THEN) $(call MKDIR,build)
 			cd $(call platformpth,vendor/glslang/build) $(THEN) cmake -G $(generator) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$(pwd)/install" ..
 			cd $(call platformpth,vendor/glslang/build/StandAlone) $(THEN) "$(MAKE)" -j$(NUMBER_OF_PROCESSORS)
-			-$(call SHELL_CMD,$(call MKDIR,$(call platformpth, lib/$(platform))))
+			-$(call MKDIR,$(call platformpth, lib/$(platform)))
 			$(call COPY,vendor/glslang/build/glslang,lib/$(platform),libglslang.a)
 
         setup-vulkan-headers:
@@ -223,13 +220,13 @@ ifndef VULKAN_SDK
         setup: setup-glfw setup-volk setup-vulkan-headers setup-vulkan-loader setup-glslang
 
         setup-vulkan-loader:
-			$(call SHELL_CMD, cd vendor $(THEN) $(call clone,https://github.com/KhronosGroup/Vulkan-Loader.git))
+			cd vendor $(THEN) $(call clone,https://github.com/KhronosGroup/Vulkan-Loader.git)
 			cd $(call platformpth,vendor/Vulkan-Loader) $(THEN) $(call MKDIR,build)
 
 			cd $(call platformpth,vendor/Vulkan-Loader/build) $(THEN) cmake -DVULKAN_HEADERS_INSTALL_DIR=$(CURDIR)/vendor/Vulkan-Headers/build/install ..
 			cd $(call platformpth,vendor/Vulkan-Loader/build) $(THEN) cmake --build . --config Release
 
-			-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,lib/$(platform))))
+			-$(call MKDIR,$(call platformpth,lib/$(platform)))
 			$(call COPY,$(loaderInstallDir),lib/$(platform),**.$(libSuffix))
     endif
 else # If VULKAN_SDK is defined
@@ -259,7 +256,7 @@ $(target): $(objects)
 	$(CXX) $(objects) -o $(target) $(linkFlags)
 
 $(buildDir)/%.spv: % 
-	-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,$(@D))))
+	-$(call MKDIR,$(call platformpth,$(@D)))
 	${GLSLC} $< -V -o $@
 
 # Add all rules from dependency files
@@ -267,7 +264,7 @@ $(buildDir)/%.spv: %
 
 # Compile objects to the build directory
 $(buildDir)/%.o: src/%.cpp Makefile
-	-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,$(@D))))
+	-$(call MKDIR,$(call platformpth,$(@D)))
 	$(CXX) -MMD -MP -c $(compileFlags) $< -o $@ $(CXXFLAGS) -D$(volkDefines)
 
 execute: 
