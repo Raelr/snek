@@ -27,8 +27,8 @@ ifeq ($(OS),Windows_NT)
     linkFlags += -Wl,--allow-multiple-definition -pthread -lopengl32 -lgdi32 -lwinmm -mwindows -static -static-libgcc -static-libstdc++
     CLI_SHELL := cmd.exe /c
     THEN := &&
-    PATHSEP := \$(BLANK)
-    MKDIR = $(call platformpth,$(CURDIR)/mkdir.bat) $1 
+    PATHSEP := \\$(BLANK)
+    MKDIR = $(call platformpth,$(CURDIR)/md2.bat) $1 
     RMDIR = rmdir /s /q $1
     directories = $(sort $(dir $(wildcard ./$1/*/.)))
     CLEAN_FOLDER = $(foreach dir,$(call directories,$1),$(call RMDIR,$(call platformpth,$(dir))),) 
@@ -267,7 +267,7 @@ $(buildDir)/%.spv: %
 
 # Compile objects to the build directory
 $(buildDir)/%.o: src/%.cpp Makefile
-	-$(call SHELL_CMD,$(call MKDIR,-p $(call platformpth,$(@D))))
+	-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,$(@D))))
 	$(CXX) -MMD -MP -c $(compileFlags) $< -o $@ $(CXXFLAGS) -D$(volkDefines)
 
 execute: 
