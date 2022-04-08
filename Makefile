@@ -210,14 +210,14 @@ ifndef VULKAN_SDK
 			$(call COPY,vendor/glslang/build/glslang,lib/$(platform),libglslang.a)
 
         setup-vulkan-headers:
-			$(call SHELL_CMD,$(call updateSubmodule,Vulkan-Headers))
-			$(call SHELL_CMD,cd $(call platformpth,vendor/Vulkan-Headers) $(THEN) git fetch --all --tags $(THEN) git checkout tags/v1.3.211)
-			$(call SHELL_CMD,cd $(call platformpth,vendor/Vulkan-Headers) $(THEN) $(call MKDIR,build))
+			$(call updateSubmodule,Vulkan-Headers)
+			cd $(call platformpth,vendor/Vulkan-Headers) $(THEN) git fetch --all --tags $(THEN) git checkout tags/v1.3.211
+			cd $(call platformpth,vendor/Vulkan-Headers) $(THEN) $(call MKDIR,build)
 
-			$(call SHELL_CMD,cd $(call platformpth,vendor/Vulkan-Headers/build) $(THEN) cmake -DCMAKE_INSTALL_PREFIX=install -G $(generator) ..)
-			$(call SHELL_CMD,cd $(call platformpth,vendor/Vulkan-Headers/build) $(THEN) cmake --build . --target install)
+			cd $(call platformpth,vendor/Vulkan-Headers/build) $(THEN) cmake -DCMAKE_INSTALL_PREFIX=install -G $(generator) ..
+			cd $(call platformpth,vendor/Vulkan-Headers/build) $(THEN) cmake --build . --target install
 
-			-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,include/vulkan)))
+			-$(call MKDIR,$(call platformpth,include/vulkan))
 			-$(call COPY,vendor/Vulkan-Headers/include/vulkan,include/vulkan,**.h)
 
         setup: setup-glfw setup-volk setup-vulkan-headers setup-vulkan-loader setup-glslang
@@ -249,7 +249,7 @@ setup-glfw:
 setup-volk:
 	$(call updateSubmodule,volk)
 
-	-$(call SHELL_CMD,$(call MKDIR,$(call platformpth,include/volk)))
+	-$(call MKDIR,$(call platformpth,include/volk))
 
 	$(call COPY,vendor/volk,include/volk,volk.h)
 	$(call COPY,vendor/volk,include/volk,volk.c)
