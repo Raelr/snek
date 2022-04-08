@@ -26,7 +26,7 @@ ifeq ($(OS),Windows_NT)
     linkFlags += -Wl,--allow-multiple-definition -pthread -lopengl32 -lgdi32 -lwinmm -mwindows -static -static-libgcc -static-libstdc++
     CLI_SHELL := cmd.exe /c
     THEN := &&
-    PATHSEP := \$(BLANK)
+    PATHSEP := \\$(BLANK)
     MKDIR = $(CURDIR)\md2 $1 
     RMDIR = rmdir /s /q $1
     directories = $(sort $(dir $(wildcard ./$1/*/.)))
