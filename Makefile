@@ -206,7 +206,8 @@ ifndef VULKAN_SDK
         setup-vulkan-headers:
 			$(call updateSubmodule,Vulkan-Headers)
 			cd $(call platformpth,vendor/Vulkan-Headers) $(THEN) git fetch --all --tags $(THEN) git checkout tags/v1.3.211
-			cd $(call platformpth,vendor/Vulkan-Headers) $(THEN) $(MKDIR) build
+			$(MKDIR) $(call platformpth,$(CURDIR)/vendor/Vulkan-Headers/build)
+#			cd $(call platformpth,vendor/Vulkan-Headers) $(THEN) $(MKDIR) build
 
 			cd $(call platformpth,vendor/Vulkan-Headers/build) $(THEN) cmake -DCMAKE_INSTALL_PREFIX=install -G $(generator) ..
 			cd $(call platformpth,vendor/Vulkan-Headers/build) $(THEN) cmake --build . --target install
