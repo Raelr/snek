@@ -129,5 +129,3 @@ lib
 include
 
 .DS_STORE
-
-vendor/Vulkan-Loader

@@ -11,7 +11,6 @@ depends := $(patsubst %.o, %.d, $(objects))
 submoduleDir := vendor
 
 updateSubmodule = git submodule update --init $(submoduleDir)/$1
-clone = git clone $1
 
 includes = -I include -I vendor/glfw/include -I include/volk -I $(vulkanIncludes) 
 linkFlags = -L lib/$(platform) -lglfw3
@@ -218,7 +217,7 @@ ifndef VULKAN_SDK
         setup: setup-glfw setup-volk setup-vulkan-headers setup-vulkan-loader setup-glslang
 
         setup-vulkan-loader:
-			cd vendor $(THEN) $(call clone,https://github.com/KhronosGroup/Vulkan-Loader.git)
+			$(call updateSubmodule,Vulkan-Loader)
 			cd $(call platformpth,vendor/Vulkan-Loader) $(THEN) $(MKDIR) build
 
 			cd $(call platformpth,vendor/Vulkan-Loader/build) $(THEN) cmake -DVULKAN_HEADERS_INSTALL_DIR=$(CURDIR)/vendor/Vulkan-Headers/build/install ..

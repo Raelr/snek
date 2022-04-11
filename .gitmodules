@@ -16,3 +16,6 @@
 [submodule "vendor/MoltenVK"]
 	path = vendor/MoltenVK
 	url = https://github.com/KhronosGroup/MoltenVK.git
+[submodule "vendor/Vulkan-Loader"]
+	path = vendor/Vulkan-Loader
+	url = https://github.com/KhronosGroup/Vulkan-Loader.git
