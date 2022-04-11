@@ -200,7 +200,7 @@ ifndef VULKAN_SDK
 			cd $(call platformpth,vendor/glslang) $(THEN) $(MKDIR) build
 			cd $(call platformpth,vendor/glslang/build) $(THEN) cmake -G $(generator) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$(pwd)/install" ..
 			cd $(call platformpth,vendor/glslang/build/StandAlone) $(THEN) "$(MAKE)" -j$(NUMBER_OF_PROCESSORS)
-			$(MKDIR) $(call platformpth, lib/$(platform))
+			$(MKDIR) $(call platformpth,lib/$(platform))
 			$(call COPY,vendor/glslang/build/glslang,lib/$(platform),libglslang.a)
 
         setup-vulkan-headers:
