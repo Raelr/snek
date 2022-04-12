@@ -25,6 +25,7 @@ ifeq ($(OS),Windows_NT)
     PATHSEP := \$(BLANK)
     MKDIR := $(call platformpth,$(CURDIR)/scripts/windows/mkdir.bat)
     RMDIR = rmdir /s /q $1
+    RM := rm -r -fo
     directories = $(sort $(dir $(wildcard ./$1/*/.)))
     CLEAN_FOLDER = $(foreach dir,$(call directories,$1),$(call RMDIR,$(call platformpth,$(dir))),) 
     CLEAN_FILES = del /s /q $1
@@ -41,15 +42,6 @@ ifeq ($(OS),Windows_NT)
     validationLayersDllInstallDir := $(validationLayersInstallDir)
 
     export GLSLC $(call platformpth,$(VULKAN_SDK)/bin/glslangValidator)
-
-    clean:
-		$(call CLEAN_FOLDER,$(buildDir))
-		$(call CLEAN_FILES,$(buildDir))
-
-    clean-all: clean
-		-$(call RMDIR,lib)
-		-$(call RMDIR,include)
-		$(call CLEAN_FOLDER,vendor)
 else 
     UNAMEOS := $(shell uname)
     ifeq ($(UNAMEOS), Linux)
@@ -88,14 +80,6 @@ else
     COPY = cp $1$(PATHSEP)$3 $2
     THEN = ;
     RM = rm -rf
-
-    clean:
-		$(RM) $(call platformpth,$(buildDir)/*)
-
-    clean-all: clean
-		$(RM) $(call platformpth,lib)
-		$(RM) $(call platformpth,include)
-		$(RM) $(call platformpth,vendor/**)
 endif
 
 # Lists phony targets for Makefile
@@ -124,7 +108,7 @@ ifndef VULKAN_SDK
 			cd vendor/MoltenVK $(THEN) ./fetchDependencies --macos
 			cd vendor/MoltenVK $(THEN) $(MAKE) macos
 
-			$(MKDIR) $(call platformpth,include/vulkan/icd.d)
+			$(MKDIR) $(call platformpth,$(CURDIR)/include/vulkan/icd.d)
 
 			$(call COPY,vendor/MoltenVK/Package/Latest/MoltenVK/dylib/macOS,include/vulkan/icd.d,**)
 			$(call COPY,vendor/MoltenVK/Package/Latest/MoltenVK/dylib/macOS,lib/$(platform),**.dylib)
@@ -141,12 +125,12 @@ ifndef VULKAN_SDK
         setup-validation-layers:
 			$(call updateSubmodule,Vulkan-ValidationLayers)
 
-			$(MKDIR) $(call platformpth,vendor/Vulkan-ValidationLayers/build)
+			$(MKDIR) $(call platformpth,$(CURDIR)/vendor/Vulkan-ValidationLayers/build)
 
-            cd vendor/Vulkan-ValidationLayers/build $(THEN) $(call platformpth,../scripts/update_deps.py --dir ../external --config release)
-            cd vendor/Vulkan-ValidationLayers/build $(THEN) cmake -C ../external/helper.cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=./ ..
-            cd vendor/Vulkan-ValidationLayers/build $(THEN) cmake --build . --config Release
-            cd vendor/Vulkan-ValidationLayers/build $(THEN) cmake --install .
+            cd $(call platformpth,vendor/Vulkan-ValidationLayers/build) $(THEN) $(call platformpth,../scripts/update_deps.py --dir ../external --config release)
+            cd $(call platformpth,vendor/Vulkan-ValidationLayers/build) $(THEN) cmake -C ../external/helper.cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=./ ..
+            cd $(call platformpth,vendor/Vulkan-ValidationLayers/build) $(THEN) cmake --build . --config Release
+            cd $(call platformpth,vendor/Vulkan-ValidationLayers/build) $(THEN) cmake --install .
 
 			$(MKDIR) $(call platformpth,include/vulkan/explicit_layer.d)
 
@@ -197,9 +181,11 @@ ifndef VULKAN_SDK
         # we aren't using the SDK and don't want to use validation layers 
         setup-glslang:
 			$(call updateSubmodule,glslang)
-			cd $(call platformpth,vendor/glslang) $(THEN) $(MKDIR) build
+			$(MKDIR) $(call platformpth,$(CURDIR)/vendor/glslang/build)
+
 			cd $(call platformpth,vendor/glslang/build) $(THEN) cmake -G $(generator) -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$(pwd)/install" ..
 			cd $(call platformpth,vendor/glslang/build/StandAlone) $(THEN) "$(MAKE)" -j$(NUMBER_OF_PROCESSORS)
+
 			$(MKDIR) $(call platformpth,lib/$(platform))
 			$(call COPY,vendor/glslang/build/glslang,lib/$(platform),libglslang.a)
 
@@ -207,7 +193,6 @@ ifndef VULKAN_SDK
 			$(call updateSubmodule,Vulkan-Headers)
 			cd $(call platformpth,vendor/Vulkan-Headers) $(THEN) git fetch --all --tags $(THEN) git checkout tags/v1.3.211
 			$(MKDIR) $(call platformpth,$(CURDIR)/vendor/Vulkan-Headers/build)
-#			cd $(call platformpth,vendor/Vulkan-Headers) $(THEN) $(MKDIR) build
 
 			cd $(call platformpth,vendor/Vulkan-Headers/build) $(THEN) cmake -DCMAKE_INSTALL_PREFIX=install -G $(generator) ..
 			cd $(call platformpth,vendor/Vulkan-Headers/build) $(THEN) cmake --build . --target install
@@ -219,7 +204,7 @@ ifndef VULKAN_SDK
 
         setup-vulkan-loader:
 			$(call updateSubmodule,Vulkan-Loader)
-			cd $(call platformpth,vendor/Vulkan-Loader) $(THEN) $(MKDIR) build
+			$(MKDIR) $(call platformpth,$(CURDIR)/vendor/Vulkan-Loader/build)
 
 			cd $(call platformpth,vendor/Vulkan-Loader/build) $(THEN) cmake -DVULKAN_HEADERS_INSTALL_DIR=$(CURDIR)/vendor/Vulkan-Headers/build/install ..
 			cd $(call platformpth,vendor/Vulkan-Loader/build) $(THEN) cmake --build . --config Release
@@ -248,6 +233,14 @@ setup-volk:
 
 	$(call COPY,vendor/volk,include/volk,volk.h)
 	$(call COPY,vendor/volk,include/volk,volk.c)
+
+clean:
+	$(RM) $(call platformpth,$(buildDir)/*)
+
+clean-all: clean
+	$(RM) $(call platformpth,lib)
+	$(RM) $(call platformpth,include)
+	$(RM) $(call platformpth,vendor/**)
 
 # Link the program and create the executable
 $(target): $(objects)
