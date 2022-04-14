@@ -24,11 +24,7 @@ ifeq ($(OS),Windows_NT)
     THEN := &&
     PATHSEP := \$(BLANK)
     MKDIR := $(call platformpth,$(CURDIR)/scripts/windows/mkdir.bat)
-    RMDIR = rmdir /s /q $1
-    RM := rm -r -fo
-    directories = $(sort $(dir $(wildcard ./$1/*/.)))
-    CLEAN_FOLDER = $(foreach dir,$(call directories,$1),$(call RMDIR,$(call platformpth,$(dir))),) 
-    CLEAN_FILES = del /s /q $1
+    RM := rm -r -f
     MAKE = mingw32-make
 
     COPY = -robocopy $(call platformpth,$1) $(call platformpth,$2) $3
@@ -127,10 +123,10 @@ ifndef VULKAN_SDK
 
 			$(MKDIR) $(call platformpth,$(CURDIR)/vendor/Vulkan-ValidationLayers/build)
 
-            cd $(call platformpth,vendor/Vulkan-ValidationLayers/build) $(THEN) $(call platformpth,../scripts/update_deps.py --dir ../external --config release)
-            cd $(call platformpth,vendor/Vulkan-ValidationLayers/build) $(THEN) cmake -C ../external/helper.cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=./ ..
-            cd $(call platformpth,vendor/Vulkan-ValidationLayers/build) $(THEN) cmake --build . --config Release
-            cd $(call platformpth,vendor/Vulkan-ValidationLayers/build) $(THEN) cmake --install .
+			cd $(call platformpth,vendor/Vulkan-ValidationLayers/build) $(THEN) $(call platformpth,../scripts/update_deps.py --dir ../external --config release)
+			cd $(call platformpth,vendor/Vulkan-ValidationLayers/build) $(THEN) cmake -C ../external/helper.cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=./ ..
+			cd $(call platformpth,vendor/Vulkan-ValidationLayers/build) $(THEN) cmake --build . --config Release
+			cd $(call platformpth,vendor/Vulkan-ValidationLayers/build) $(THEN) cmake --install .
 
 			$(MKDIR) $(call platformpth,include/vulkan/explicit_layer.d)
 
