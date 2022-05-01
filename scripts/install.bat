@@ -18,6 +18,7 @@ echo "Installing vulkan dependencies..."
 
 CALL :SetupVolk
 CALL :SetupGlfw
+CALL :SetupGlm
 
 if NOT DEFINED VULKAN_SDK CALL :SetupHeadersAndLoader else echo "Vulkan_SDK detected. Using SDK resources for build"
 
@@ -49,6 +50,12 @@ EXIT /B 0
     mkdir %SUBMODULE_LIB_DIR%
 
     robocopy %SUBMODULE_DIR%\glfw\src %SUBMODULE_LIB_DIR% libglfw3.a
+EXIT /B 0
+
+:SetupGlm
+    echo "Cloning glm..."
+
+    CALL :UpdateSubmodule glm
 EXIT /B 0
 
 :SetupVulkanHeaders
