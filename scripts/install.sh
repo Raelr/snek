@@ -51,6 +51,11 @@ setup_glfw() {
     cp ${SUBMODULE_DIR}/glfw/src/libglfw3.a ${SUBMODULE_LIB_DIR}
 }
 
+setup_glm() {
+    echo "Cloning glm..."
+    update_submodules glm
+}
+
 setup_moltenVk() {
     echo "Cloning MoltenVk..."
 
@@ -170,6 +175,7 @@ setup_vulkan_validation_layers() {
 
 setup_volk
 setup_glfw
+setup_glm
 
 if [[ -z "${VULKAN_SDK}" ]]; then
     
