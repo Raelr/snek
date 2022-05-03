@@ -163,18 +163,19 @@ Once these are done the project should be built and ready to go. Enjoy!
      ├─[shaders] <- space for storing GLSL shaders
      │
      ├─[src]
-     │     ├─[Renderer]
+     │     └─[Renderer]
      │                ├─[Device]
-     │                │        ├─[Utils] <- Device utilities
+     │                │        └─[Utils] <- Device utilities
      │                │
      │                ├─[Model]     <- Custom 3D model class
      │                ├─[Pipeline]  <- Graphics pipeline
-     │                └[Swapchain] <- Swapchain functions
+     │                ├─[Swapchain] <- Swapchain functions
+     │                └─[Utils]     <- Utility classes (data structures)
      │
      ├─[Window] <- Windowing library functions
      │
      ├─[vendor]         <- Library install location
-     │        └[debug] <- Debug related libraries
+     │        └─[debug] <- Debug related libraries
 ```
 
 ## Contributing
