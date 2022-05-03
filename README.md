@@ -15,7 +15,7 @@ The intention of SNEK is to serve as a learning platform for Vulkan and high per
 ## Contents
 
 - [SNEK](#snek)
-    - [Current Compatibility](#current-compatibility)
+  - [Current Compatibility](#current-compatibility)
   - [Contents](#contents)
   - [Getting Started](#getting-started)
     - [Dependencies](#dependencies)
@@ -115,18 +115,18 @@ Building and running SNEK with the Vulkan SDK is the quickest way to get started
    ```
 
 3. This should install all required dependencies. Once completed a `.env` file will be generated with all required variables. If the build is completed with no issue then you can proceed to build the project.
-   
+
 **Building validation layers**
 
 If you want to build validation layers then the install scripts should be run by passing the `DEBUG` variable to the `install` script:
 
-   ```
-   // Linux & macos
-   $ ./scripts/install.sh DEBUG
+```
+// Linux & macos
+$ ./scripts/install.sh DEBUG
 
-   // Windows
-   > ./scripts/install.bat DEBUG
-   ```
+// Windows
+> ./scripts/install.bat DEBUG
+```
 
 **NOTE**: Building the DEBUG build can take some time to complete. Please be patient while the project builds the required validation layers.
 
@@ -158,22 +158,24 @@ Once these are done the project should be built and ready to go. Enjoy!
 
 ```
 [root]
-     |-[scripts] <- all utility scripts
-     |
-     |-[shaders] <- space for storing GLSL shaders
-     |
-     |-[src]
-     |     |-[Renderer]
-     |                |-[Device]
-     |                |        |-[Utils] <- Device utilities
-     |                |
-     |                |-[Pipeline]  <- Graphics pipeline
-     |                |-[Swapchain] <- Swapchain functions
-     |
-     |-[Window] <- Windowing library functions
-     |
-     |-[vendor]         <- Library install location
-     |        |-[debug] <- Debug related libraries
+     ├─[scripts] <- all utility scripts
+     │
+     ├─[shaders] <- space for storing GLSL shaders
+     │
+     ├─[src]
+     │     └─[Renderer]
+     │                ├─[Device]
+     │                │        └─[Utils] <- Device utilities
+     │                │
+     │                ├─[Model]     <- Custom 3D model class
+     │                ├─[Pipeline]  <- Graphics pipeline
+     │                ├─[Swapchain] <- Swapchain functions
+     │                └─[Utils]     <- Utility classes (data structures)
+     │
+     ├─[Window] <- Windowing library functions
+     │
+     ├─[vendor]         <- Library install location
+     │        └─[debug] <- Debug related libraries
 ```
 
 ## Contributing
