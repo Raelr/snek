@@ -92,7 +92,7 @@ namespace SnekVk
         vkFreeCommandBuffers(
             device.Device(), 
             device.GetCommandPool(), 
-            swapChain.GetImageCount(), 
+            SwapChain::GetImageCount(),
             commandBuffers.Data());
     }
 

@@ -18,6 +18,28 @@ namespace SnekVk
     class RenderPass
     {
     public:
+        class Config
+        {
+        public:
+            Config() = default;
+            ~Config() = default;
+
+            static constexpr u32 MAX_ATTACHMENTS = 2;
+            static constexpr u32 MAX_SUBPASSES = 1;
+            static constexpr u32 MAX_DEPENDENCIES = 1;
+
+            Config& WithAttachment(const VkAttachmentDescription& attachment);
+            Config& WithSubPass(const VkSubpassDescription& subpass);
+            Config& WithDependency(const VkSubpassDependency& dependency);
+
+            const Utils::StackArray<VkAttachmentDescription, MAX_ATTACHMENTS>& GetAttachments() const { return attachments; }
+            const Utils::StackArray<VkSubpassDescription, MAX_SUBPASSES>& GetSubPasses() const { return subpasses; }
+            const Utils::StackArray<VkSubpassDependency, MAX_DEPENDENCIES>& GetDependencies() const { return dependencies; }
+        private:
+            Utils::StackArray<VkAttachmentDescription, MAX_ATTACHMENTS> attachments;
+            Utils::StackArray<VkSubpassDescription, MAX_SUBPASSES> subpasses;
+            Utils::StackArray<VkSubpassDependency, MAX_DEPENDENCIES> dependencies;
+        };
         /**
          * @brief An empty constructor. The RenderPass class relies on the Build() method to initialize the Vulkan
          * RenderPass object.
@@ -28,21 +50,12 @@ namespace SnekVk
          * @brief Initialises the RenderPass. Creating a RenderPass requires us to explicitly state what operations
          * the RenderPass will be responsible for, along with any graphics stages the renderpass may rely on.
          *
-         * @param vulkanDevice The device being used to allocate memory from for these operations
-         * @param attachments Attachments are explicit declarations of the stages we wish to use in our graphics pipeline
-         * @param attachmentCount The number of attachments the RenderPass is using
-         * @param subpasses Specifies any sub operations we wish to accomplish within the RenderPass
-         * @param subpassCount The number of subpasses
-         * @param dependencies Any dependencies the pipeline may rely on
-         * @param dependencyCount The number of dependencies the RenderPass has
+         * @param vulkanDevice The device instance being used to crete the render pass
+         * @param config Config variables used to create the renderpass
          */
-        void Build(VulkanDevice* vulkanDevice,
-                   VkAttachmentDescription* attachments,
-                   u32 attachmentCount,
-                   VkSubpassDescription* subpasses,
-                   u32 subpassCount,
-                   VkSubpassDependency* dependencies,
-                   u32 dependencyCount);
+        void Initialise(VulkanDevice* vulkanDevice, const Config& config);
+
+        static Config CreateConfig() { return Config{}; }
 
         /**
          * @brief Begins a RenderPass. Any rendering operations that occur will utilise the attachments and operations

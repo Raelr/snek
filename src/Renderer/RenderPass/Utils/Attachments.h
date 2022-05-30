@@ -7,6 +7,47 @@ namespace SnekVk
     class Attachments
     {
     public:
+        // TODO: document these builders
+        class SubPassBuilder
+        {
+        public:
+            SubPassBuilder() = default;
+            ~SubPassBuilder() = default;
+
+            SubPassBuilder& WithColorReference(VkAttachmentReference reference);
+            SubPassBuilder& WithDepthReference(VkAttachmentReference reference);
+            VkSubpassDescription BuildGraphicsSubPass();
+        private:
+            Utils::StackArray<VkAttachmentReference, 2> colorReferences;
+            VkAttachmentReference depthReference {};
+        };
+
+        class DependencyBuilder
+        {
+        public:
+            DependencyBuilder() = default;
+            ~DependencyBuilder() = default;
+
+            DependencyBuilder& WithSrcSubPass(u32 subpass);
+            DependencyBuilder& WithDstSubPass(u32 subpass);
+            DependencyBuilder& WithSrcStageMask(VkPipelineStageFlags stageMask);
+            DependencyBuilder& WithDstStageMask(VkPipelineStageFlags stageMask);
+            DependencyBuilder& WithSrcAccessMask(VkAccessFlags accessMask);
+            DependencyBuilder& WithDstAccessMask(VkAccessFlags accessMask);
+            VkSubpassDependency Build();
+        private:
+            u32 srcSubpass;
+            u32 dstSubpass;
+            VkPipelineStageFlags srcStageMask;
+            VkPipelineStageFlags dstStageMask;
+            VkAccessFlags srcAccessMask;
+            VkAccessFlags dstAccessMask;
+        };
+
+        static SubPassBuilder CreateSubPass() { return SubPassBuilder{}; }
+
+        static DependencyBuilder CreateSubPassDependency() { return DependencyBuilder{}; }
+
         /**
          * @brief Creates a default Color Attachment.
          *

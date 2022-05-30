@@ -84,7 +84,7 @@ namespace SnekVk
          * 
          * @return u32 representing the number of possible active simultaneous images. 
          */
-        u32 GetImageCount() { return FrameImages::GetImageCount(); }
+        static u32 GetImageCount() { return FrameImages::GetImageCount(); }
 
         /**
          * @brief The the raw Vulkan swapchain struct. 
@@ -98,14 +98,14 @@ namespace SnekVk
          * 
          * @return u32 representing the width of the image. 
          */
-        u32 GetWidth() { return swapChainExtent.width; }
+        u32 GetWidth() const { return swapChainExtent.width; }
 
         /**
          * @brief Get the swapchain image height.
          * 
          * @return u32 representing the image height.
          */
-        u32 GetHeight() { return swapChainExtent.height; }
+        u32 GetHeight() const { return swapChainExtent.height; }
 
         static SwapChain* GetInstance() { return instance; }
 
@@ -233,6 +233,7 @@ namespace SnekVk
         VkExtent2D windowExtent;
 
         // frame buffers and renderpasses
+        // TODO: Refactor this into a HeapArray
         VkFramebuffer* swapChainFrameBuffers {VK_NULL_HANDLE};
         RenderPass renderPass;
 
@@ -250,6 +251,7 @@ namespace SnekVk
         VkSwapchainKHR swapChain;
 
         // Synchronisation objects
+        // TODO: Refactor these into HeapArrays
         VkSemaphore* imageAvailableSemaphores {VK_NULL_HANDLE};
         VkSemaphore* renderFinishedSemaphores {VK_NULL_HANDLE};
         VkFence* inFlightFences {VK_NULL_HANDLE};
