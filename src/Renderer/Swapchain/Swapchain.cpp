@@ -4,6 +4,7 @@
 
 namespace SnekVk
 {
+    // TODO: Fix the warnings
     SwapChain* SwapChain::instance = nullptr;
 
     SwapChain::SwapChain(VulkanDevice& device, VkExtent2D windowExtent) 
@@ -21,6 +22,7 @@ namespace SnekVk
         ClearMemory();
     }
 
+    // TODO: Is there a better way to handle swapchain creation?
     void SwapChain::SetWindowExtents(VkExtent2D windowExtent)
     {
         this->windowExtent = windowExtent;
@@ -96,16 +98,19 @@ namespace SnekVk
         if (instance == nullptr) instance = this;
     }
 
+    // TODO: Clean this function
     void SwapChain::CreateSwapChain()
     {
         // Get our swapchain details
         SwapChainSupportDetails::SwapChainSupportDetails details = device.GetSwapChainSupport();
 
         // Get our supported color format
-        VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(details.formats.Data(), static_cast<u32>(details.formats.Size()));
+        VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(details.formats.Data(),
+                                                                   static_cast<u32>(details.formats.Size()));
 
         // Choose our presentation mode (the form of image buffering)
-        VkPresentModeKHR presentMode = ChoosePresentMode(details.presentModes.Data(), static_cast<u32>(details.presentModes.Size()));
+        VkPresentModeKHR presentMode = ChoosePresentMode(details.presentModes.Data(),
+                                                         static_cast<u32>(details.presentModes.Size()));
 
         // The size of our images. 
         VkExtent2D extent = ChooseSwapExtent(details.capabilities);
@@ -186,58 +191,41 @@ namespace SnekVk
 
     void SwapChain::CreateRenderPass()
     {
-        // Determine how depth will be handled in our image
-        VkAttachmentDescription depthAttachment = Attachments::CreateDepthAttachment(FindDepthFormat());
-        VkAttachmentReference depthAttachmentRef = Attachments::CreateDepthStencilAttachmentReference(1);
-
-        // Specify our color attachments and how we want them to be displayed
-        VkAttachmentDescription colorAttachment = Attachments::CreateColorAttachment(GetSwapChainImageFormat());
-
-        // Specify our color attachments and how we want them to be displayed
-        VkAttachmentReference colorAttachmentRef = Attachments::CreateColorAttachmentReference(0);
-
-        // Specify a rendering command that'll be followed by the render pass
-        VkSubpassDescription subpass = Attachments::CreateGraphicsSubpass(1,
-                                                                          &colorAttachmentRef,
-                                                                          &depthAttachmentRef);
-
-        // Enforces an order in which subpasses are evaluated
-        VkSubpassDependency dependency = Attachments::CreateDependency(VK_SUBPASS_EXTERNAL,
-                                                                       0,
-                                                                       VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
-                                                                       | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
-                                                                       VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
-                                                                       | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
-                                                                       0,
-                                                                       VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
-                                                                       | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
-
-        // Specify the number of attachments being used by this renderpass
-        u32 attachmentCount = 2;
-        VkAttachmentDescription attachments[] = {colorAttachment, depthAttachment};
-
-        renderPass.Build(&device,
-                         attachments,
-                         attachmentCount,
-                         &subpass,
-                         1,
-                         &dependency,
-                         1);
+        swapChainImageFormat = GetSwapChainImageFormat();
+        swapChainDepthFormat = FindDepthFormat();
+        renderPass.Initialise(&device,
+                              RenderPass::CreateConfig()
+                              .WithAttachment(Attachments::CreateColorAttachment(swapChainImageFormat))
+                              .WithAttachment(Attachments::CreateDepthAttachment(swapChainDepthFormat))
+                              .WithSubPass(Attachments::CreateSubPass()
+                                            .WithColorReference(Attachments::CreateColorAttachmentReference(0))
+                                            .WithDepthReference(Attachments::CreateDepthStencilAttachmentReference(1))
+                                            .BuildGraphicsSubPass())
+                              .WithDependency(Attachments::CreateSubPassDependency()
+                                              .WithSrcSubPass(VK_SUBPASS_EXTERNAL)
+                                              .WithDstSubPass(0)
+                                              .WithSrcStageMask(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+                                                                        | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT)
+                                              .WithDstStageMask(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+                                                                        | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT)
+                                              .WithSrcAccessMask(0)
+                                              .WithDstAccessMask(VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
+                                                                        | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT)
+                                              .Build()));
     }
 
     void SwapChain::CreateDepthResources()
     {
         // Start by getting our depth information
-        VkFormat format = FindDepthFormat();
-        swapChainDepthFormat = format;
-        VkExtent2D swapChainExtent = GetSwapChainExtent();
+        VkExtent2D extent = GetSwapChainExtent();
 
         // Initialise our depth image information. 
-        depthImages = FrameImages(&device, format);
+        depthImages = FrameImages(&device, swapChainDepthFormat);
 
-        depthImages.InitDepthImageView2D(swapChainExtent.width, swapChainExtent.height, 1);
+        depthImages.InitDepthImageView2D(extent.width, extent.height, 1);
     }
 
+    // TODO: Refactor this
     void SwapChain::CreateFrameBuffers()
     {
         u32 imageCount = FrameImages::GetImageCount();

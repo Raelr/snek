@@ -38,26 +38,42 @@ namespace SnekVk
 
     RenderPass::RenderPass() = default;
 
-    void RenderPass::Build(VulkanDevice* vulkanDevice,
-                           VkAttachmentDescription *attachments,
-                           u32 attachmentCount,
-                           VkSubpassDescription *subpasses,
-                           u32 subpassCount,
-                           VkSubpassDependency *dependencies,
-                           u32 dependencyCount)
+    void RenderPass::Initialise(VulkanDevice *vulkanDevice, const RenderPass::Config& config)
     {
         device = vulkanDevice;
 
+        auto& attachments = config.GetAttachments();
+        auto& subPasses = config.GetSubPasses();
+        auto& dependencies = config.GetDependencies();
+
         VkRenderPassCreateInfo renderPassCreateInfo{};
         renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-        renderPassCreateInfo.attachmentCount = attachmentCount;
-        renderPassCreateInfo.pAttachments = attachments;
-        renderPassCreateInfo.subpassCount = subpassCount;
-        renderPassCreateInfo.pSubpasses = subpasses;
-        renderPassCreateInfo.dependencyCount = dependencyCount;
-        renderPassCreateInfo.pDependencies = dependencies;
+        renderPassCreateInfo.attachmentCount = attachments.Count();
+        renderPassCreateInfo.pAttachments = attachments.Data();
+        renderPassCreateInfo.subpassCount = subPasses.Count();
+        renderPassCreateInfo.pSubpasses = subPasses.Data();
+        renderPassCreateInfo.dependencyCount = dependencies.Count();
+        renderPassCreateInfo.pDependencies = dependencies.Data();
 
         SNEK_ASSERT(vkCreateRenderPass(device->Device(), &renderPassCreateInfo, nullptr, OUT &renderPass) == VK_SUCCESS,
                     "Failed to create render pass!")
+    }
+
+    RenderPass::Config &RenderPass::Config::WithAttachment(const VkAttachmentDescription& attachment)
+    {
+        attachments.Append(attachment);
+        return *this;
+    }
+
+    RenderPass::Config &RenderPass::Config::WithSubPass(const VkSubpassDescription& subpass)
+    {
+        subpasses.Append(subpass);
+        return *this;
+    }
+
+    RenderPass::Config &RenderPass::Config::WithDependency(const VkSubpassDependency& dependency)
+    {
+        dependencies.Append(dependency);
+        return *this;
     }
 }
