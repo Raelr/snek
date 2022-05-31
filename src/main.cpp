@@ -152,18 +152,20 @@ void MoveCameraXZ(float deltaTime, Components::Shape& viewerObject)
     viewerObject.SetRotationY(glm::mod(viewerObject.GetRotation().y, glm::two_pi<float>()));
 
     float yaw = viewerObject.GetRotation().y;
-    const glm::vec3 forwardDir{glm::sin(yaw), 0.f, glm::cos(yaw)};
-    const glm::vec3 rightDir{forwardDir.z, 0.f, -forwardDir.x};
-    const glm::vec3 upDir{0.f, -1.f, 0.f};
+    float pitch = viewerObject.GetRotation().x;
+
+    float xDir = glm::sin(yaw) * glm::cos(pitch);
+    float zDir = glm::cos(yaw) * glm::cos(pitch);
+
+    const glm::vec3 forwardDir{xDir, -glm::sin(pitch), zDir};
+    const glm::vec3 rightDir{forwardDir.z , 0.f, -forwardDir.x};
 
     glm::vec3 moveDir{0.f};
+
     if (Input::IsKeyDown(KEY_W)) moveDir += forwardDir;
     if (Input::IsKeyDown(KEY_S)) moveDir -= forwardDir;
     if (Input::IsKeyDown(KEY_A)) moveDir -= rightDir;
     if (Input::IsKeyDown(KEY_D)) moveDir += rightDir;
-
-    if (Input::IsKeyDown(KEY_Q)) moveDir += upDir;
-    if (Input::IsKeyDown(KEY_E)) moveDir -= upDir;
 
     float moveSpeed = 2.f;
 
@@ -181,8 +183,6 @@ int main()
     WINDOWS_ATTACH_CONSOLE
 
     SnekVk::Window window("Snek", WIDTH, HEIGHT);
-
-    window.DisableCursor();
 
     Input::SetWindowPointer(&window);
 
@@ -300,6 +300,8 @@ int main()
 
     renderer.SetMainCamera(&camera);
 
+    camera.SetViewYXZ(cameraObject.GetPosition(), cameraObject.GetRotation());
+
     while(!window.WindowShouldClose()) {
         
         auto newTime = std::chrono::high_resolution_clock::now();
@@ -310,21 +312,19 @@ int main()
 
         window.Update();
 
-        if (Input::IsKeyJustPressed(KEY_ESCAPE)) 
-        {
-            inputEnabled = !inputEnabled;
-            window.ToggleCursor(inputEnabled);
-        }
-
         float aspect = renderer.GetAspectRatio();
 
         camera.SetPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 100.f);
 
-        if (inputEnabled)
+        if (Input::IsMouseButtonDown(MOUSE_KEY_RIGHT))
         {
             MoveCameraXZ(frameTime, cameraObject);
             camera.SetViewYXZ(cameraObject.GetPosition(), cameraObject.GetRotation());
         }
+
+        if (Input::IsMouseButtonJustPressed(MOUSE_KEY_RIGHT)) window.ToggleCursor(true);
+
+        if (Input::IsMouseButtonJustReleased(MOUSE_KEY_RIGHT)) window.ToggleCursor(false);
 
         if (!renderer.StartFrame()) continue;
         
@@ -347,6 +347,7 @@ int main()
         }
         
         renderer.EndFrame();
+        Input::FlushKeys();
     }
 
     renderer.ClearDeviceQueue();

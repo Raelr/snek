@@ -6,6 +6,7 @@ Input::MouseCoordinates Input::currentMouseCoordinates;
 bool Input::movedLastFrame{false};
 
 std::map<int, int> Input::keyMap;
+std::unordered_set<int> Input::clearedKeys;
 
 void Input::SetWindowPointer(SnekVk::Window* window)
 {
@@ -17,39 +18,26 @@ bool Input::IsKeyDown(int key)
 {
     bool hasKey = (glfwGetKey(windowPtr->GetGlfwWindow(), key) == GLFW_PRESS);
 
-    if (keyMap.find(key) != keyMap.end())
-    {
-        keyMap[key] = hasKey ? 1 : 0;
-    } 
-    else 
-    {
-        if (hasKey) keyMap[key] = 1;
-    }
+    if (hasKey) keyMap[key] +=1;
+    else clearedKeys.emplace(key);
+
     return hasKey;
 }
 
 bool Input::IsKeyJustPressed(int key)
 {
     bool hasKey = glfwGetKey(windowPtr->GetGlfwWindow(), key) == GLFW_PRESS;
+    bool isKeyPresent = (keyMap.find(key) != keyMap.end());
 
-    bool keyEntryExists = keyMap.find(key) != keyMap.end();
-    if (keyEntryExists && hasKey)
-    {
-        if (keyMap[key] == 0) 
-        {
-            keyMap[key] = 1;
-            return true;
-        }
-        else return false;
-    } 
-    else if (hasKey && !keyEntryExists)
-    {
-        keyMap[key] = 1;
-        return true;
-    } 
-    else if (!hasKey && keyEntryExists) keyMap[key] = 0;
+    bool isJustPressed = false;
 
-    return false;
+    if (hasKey && isKeyPresent) {
+        isJustPressed = (keyMap[key] == 1);
+        keyMap[key] += 1;
+    }
+    else if (!hasKey) clearedKeys.emplace(key);
+
+    return isJustPressed;
 }
 
 const Input::MouseCoordinates& Input::GetCursorPosition()
@@ -69,6 +57,73 @@ void Input::GetCursorPositionCallback(GLFWwindow* window, double xpos, double yp
 {
     currentMouseCoordinates.x = static_cast<float>(xpos);
     currentMouseCoordinates.y = static_cast<float>(ypos);
+}
+
+bool Input::IsKeyJustReleased(int key)
+{
+    bool hasKey = glfwGetKey(windowPtr->GetGlfwWindow(), key) == GLFW_PRESS;
+    bool isReleased = false;
+
+    if (!hasKey)
+    {
+        if (keyMap[key] != 0)
+        {
+            isReleased = true;
+            clearedKeys.emplace(isReleased);
+        }
+    }
+    return isReleased;
+}
+
+void Input::FlushKeys()
+{
+    for(auto& key : clearedKeys)
+    {
+        keyMap[key] = 0;
+    }
+    clearedKeys.clear();
+}
+
+bool Input::IsMouseButtonDown(int button)
+{
+    bool hasButton = (glfwGetMouseButton(windowPtr->GetGlfwWindow(), button) == GLFW_PRESS);
+
+    if (hasButton) keyMap[button] +=1;
+    else clearedKeys.emplace(button);
+
+    return hasButton;
+}
+
+bool Input::IsMouseButtonJustPressed(int button)
+{
+    bool hasButton = glfwGetMouseButton(windowPtr->GetGlfwWindow(), button) == GLFW_PRESS;
+    bool isButtonPresent = (keyMap.find(button) != keyMap.end());
+
+    bool isJustPressed = false;
+
+    if (hasButton && isButtonPresent) {
+        isJustPressed = (keyMap[button] == 1);
+        keyMap[button] += 1;
+    }
+    else if (!hasButton) clearedKeys.emplace(button);
+
+    return isJustPressed;
+}
+
+bool Input::IsMouseButtonJustReleased(int button)
+{
+    bool hasButton = glfwGetMouseButton(windowPtr->GetGlfwWindow(), button) == GLFW_PRESS;
+    bool isReleased = false;
+
+    if (!hasButton)
+    {
+        if (keyMap[button] != 0)
+        {
+            isReleased = true;
+            clearedKeys.emplace(isReleased);
+        }
+    }
+    return isReleased;
 }
 
 
