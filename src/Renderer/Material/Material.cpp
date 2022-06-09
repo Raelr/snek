@@ -175,9 +175,8 @@ namespace SnekVk
 
             u64 offset = property.offset;
 
-            std::cout << property.size + offset << std::endl;
-
-            bufferInfos[i] = Utils::Descriptor::CreateBufferInfo(buffer.buffer, offset, property.size);
+            bufferInfos[i] = Utils::Descriptor::CreateBufferInfo(buffer.buffer, offset, property.size * property.count);
+            std::cout << "Property Size: " << property.size * property.count << std::endl;
 
             std::cout << "Allocating descriptor set for binding " << property.binding << std::endl;
             Utils::Descriptor::AllocateSets(device->Device(), &binding.descriptorSet, descriptorPool, 1, &binding.layout);
@@ -217,8 +216,8 @@ namespace SnekVk
                 VertexDescription::CreateBinding(
                 i, 
                 binding.vertexStride, 
-                VertexDescription::VERTEX, 
-                attributes.Data(), 
+                VertexDescription::VERTEX,
+                attributes.Data(),
                 attributes.Count()
             ));
         }
@@ -243,7 +242,7 @@ namespace SnekVk
                 uniform.id, 
                 (VkShaderStageFlags)shader->GetStage(), 
                 offset,  
-                uniform.size, 
+                uniform.size * uniform.arraySize,
                 uniform.dynamicCount
             };
 

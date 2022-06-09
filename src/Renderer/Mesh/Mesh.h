@@ -94,6 +94,7 @@ namespace SnekVk
         u32 indexCount = 0;
         u32 vertexCount = 0;
 
+        u64 indexSize {sizeof(u32)};
         u64 vertexSize = 0;
 
         bool isFreed = false;

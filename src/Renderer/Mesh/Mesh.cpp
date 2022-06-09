@@ -47,7 +47,7 @@ namespace SnekVk
 
         // TODO(Aryeh): Only create this if there actually are indices
         Buffer::CreateBuffer(
-            sizeof(u32) * MAX_INDICES,
+            indexSize * MAX_INDICES,
             VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
             // specifies that data is accessible on the CPU.
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | 
@@ -99,12 +99,12 @@ namespace SnekVk
 
     void Mesh::CreateIndexBuffer(const u32* indices)
     {
-        VkDeviceSize bufferSize = sizeof(u32) * MAX_INDICES;
+        VkDeviceSize bufferSize = indexSize * MAX_INDICES;
 
-        Buffer::CopyData(globalIndexStagingBuffer, bufferSize, indices);
+        Buffer::CopyData(globalIndexStagingBuffer, indexSize * indexCount, indices);
 
         Buffer::CreateBuffer(
-            bufferSize,
+                bufferSize,
             VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
             // specifies that data is accessible on the CPU.
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,

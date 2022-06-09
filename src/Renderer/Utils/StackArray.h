@@ -35,6 +35,7 @@ namespace SnekVk::Utils
         size_t Count() { return count; }
         size_t Size() { return S; }
         T* Data() { return data; }
+        const T* Data() const { return data; }
         
         void Set(size_t index, T value)
         {
