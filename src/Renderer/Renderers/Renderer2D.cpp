@@ -21,10 +21,11 @@ namespace SnekVk
 
     void Renderer2D::DrawModel(Model* model, const glm::vec2& position, const glm::vec2& scale, const float& rotation, const float& zIndex)
     {
-        models.Append(model);
+        Renderer2D::models.Append(model);
 
         auto transform = Utils::Math::CalculateTransform3D(glm::vec3(position.x, position.y, zIndex), glm::vec3(0.f, 0.f, rotation), glm::vec3(scale.x, scale.y, 0.f));
-        transforms.Append({ transform });
+
+        Renderer2D::transforms.Append({ transform });
     }
 
     void Renderer2D::DrawModel(Model* model, const glm::vec2& position, const glm::vec2& scale, const float& zIndex)
@@ -39,7 +40,7 @@ namespace SnekVk
 
     void Renderer2D::RecreateMaterials()
     {
-        if (currentMaterial) currentMaterial->RecreatePipeline(); 
+        if (currentMaterial != nullptr) currentMaterial->RecreatePipeline();
     }
 
     void Renderer2D::Render(VkCommandBuffer& commandBuffer, const GlobalData& globalData)
@@ -53,17 +54,16 @@ namespace SnekVk
             if (currentMaterial != model->GetMaterial())
             {
                 currentMaterial = model->GetMaterial();
-                currentMaterial->SetUniformData(transformId, transformSize, transforms.Data());
-                currentMaterial->SetUniformData(globalDataId, sizeof(globalData), &globalData);
+                currentMaterial->SetUniformData(Renderer2D::transformId, Renderer2D::transformSize, transforms.Data());
+                currentMaterial->SetUniformData(Renderer2D::globalDataId, sizeof(globalData), &globalData);
                 currentMaterial->Bind(commandBuffer);
-            } 
+            }
 
             if (currentModel != model)
             {
                 currentModel = model;
                 currentModel->Bind(commandBuffer);
             }
-
             model->Draw(commandBuffer, i);
         }
 
