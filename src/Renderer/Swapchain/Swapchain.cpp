@@ -1,7 +1,5 @@
 #include "Swapchain.h"
 
-#include <array>
-
 namespace SnekVk
 {
     // TODO: Fix the warnings
@@ -193,7 +191,8 @@ namespace SnekVk
     {
         swapChainImageFormat = GetSwapChainImageFormat();
         swapChainDepthFormat = FindDepthFormat();
-        renderPass.Initialise(&device,
+        RenderPass::Initialise(&device,
+                               OUT renderPass,
                               RenderPass::CreateConfig()
                               .WithAttachment(Attachments::CreateColorAttachment(swapChainImageFormat))
                               .WithAttachment(Attachments::CreateDepthAttachment(swapChainDepthFormat))

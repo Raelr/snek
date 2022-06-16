@@ -119,6 +119,8 @@ namespace SnekVk
         return CreateAttachmentReference(attachment, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
     }
 
+    // SubPassBuilder functions
+
     Attachments::SubPassBuilder &Attachments::SubPassBuilder::WithColorReference(VkAttachmentReference reference) {
         colorReferences.Append(reference);
         return *this;
@@ -134,6 +136,8 @@ namespace SnekVk
                                      colorReferences.Data(),
                                      &depthReference);
     }
+
+    // DependencyBuilder Functions
 
     Attachments::DependencyBuilder &Attachments::DependencyBuilder::WithSrcSubPass(u32 subpass) {
         srcSubpass = subpass;

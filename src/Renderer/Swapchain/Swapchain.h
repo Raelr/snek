@@ -227,10 +227,9 @@ namespace SnekVk
 
         // Device and window data
         VulkanDevice& device;
+        VkExtent2D windowExtent;
 
         static SwapChain* instance;
-
-        VkExtent2D windowExtent;
 
         // frame buffers and renderpasses
         // TODO: Refactor this into a HeapArray

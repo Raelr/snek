@@ -59,6 +59,12 @@ namespace SnekVk
                     "Failed to create render pass!")
     }
 
+    void RenderPass::Initialise(VulkanDevice* device, RenderPass &renderpass, const RenderPass::Config &config) {
+        renderpass.Initialise(device, config);
+    }
+
+    // Config functions.
+
     RenderPass::Config &RenderPass::Config::WithAttachment(const VkAttachmentDescription& attachment)
     {
         attachments.Append(attachment);
