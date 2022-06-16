@@ -32,6 +32,9 @@ namespace SnekVk
         VkImage GetImage(size_t index) { return images[index]; }
         VkImageView GetImageView(size_t index) { return imageViews[index]; }
 
+        const VkImage& GetImage(size_t index) const { return images[index]; }
+        const VkImageView& GetImageView(size_t index) const { return imageViews[index]; }
+
         static void SetImageCount(u32 count) { imageCount = count; }
         static u32 GetImageCount() { return imageCount; }
     private:
