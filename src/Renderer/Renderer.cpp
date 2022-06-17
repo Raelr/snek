@@ -139,7 +139,7 @@ namespace SnekVk
         SNEK_ASSERT(vkEndCommandBuffer(OUT commandBuffer) == VK_SUCCESS,
             "Failed to record command buffer!");
 
-        auto result = swapChain.SubmitCommandBuffers(&commandBuffer, &currentImageIndex);
+        auto result = swapChain.SubmitCommandBuffers(&commandBuffer, currentImageIndex);
 
         if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR ||
             window.WasResized())

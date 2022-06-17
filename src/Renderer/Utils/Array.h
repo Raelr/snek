@@ -142,6 +142,8 @@ namespace SnekVk::Utils
         }
 
         const size_t Size() const { return size; }
+
+        // TODO(Aryeh): Actually change the size of the array
         void SetSize(size_t size) { this->size = size; }
 
         T& operator[] (size_t index) { return data[index]; }

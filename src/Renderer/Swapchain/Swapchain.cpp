@@ -51,8 +51,10 @@ namespace SnekVk
         {
             vkDestroySemaphore(device.Device(), renderFinishedSemaphores[i], nullptr);
             vkDestroySemaphore(device.Device(), imageAvailableSemaphores[i], nullptr);
-            vkDestroyFence(device.Device(), inFlightFences[i], nullptr);
+            //vkDestroyFence(device.Device(), inFlightFences[i], nullptr);
         }
+
+        inFlightFences.DestroyFence();
     }
 
     void SwapChain::ClearMemory()
@@ -60,13 +62,9 @@ namespace SnekVk
         // De-allocate arrays
 
         delete [] swapChainFrameBuffers;
-        
-        delete [] imagesInFlight;
 
         // Set values to nullptr
         swapChainFrameBuffers = nullptr;
-
-        imagesInFlight = nullptr;
     }
 
     void SwapChain::RecreateSwapchain()
@@ -278,11 +276,8 @@ namespace SnekVk
         
         if (imageAvailableSemaphores == nullptr) imageAvailableSemaphores = new VkSemaphore[MAX_FRAMES_IN_FLIGHT];
         if (renderFinishedSemaphores == nullptr) renderFinishedSemaphores = new VkSemaphore[MAX_FRAMES_IN_FLIGHT];
-        if (inFlightFences == nullptr) inFlightFences = new VkFence[MAX_FRAMES_IN_FLIGHT];
-        if (imagesInFlight == nullptr) imagesInFlight = new VkFence[imageCount];
-
-        // Set all images in flight to null
-        for (size_t i = 0; i < imageCount; i++) imagesInFlight[i] = VK_NULL_HANDLE;
+        //if (inFlightFences == nullptr) inFlightFences = new VkFence[MAX_FRAMES_IN_FLIGHT];
+        //if (imagesInFlight == nullptr) imagesInFlight = new VkFence[imageCount];
 
         // Create our semaphore and fence create info
         VkSemaphoreCreateInfo semaphoreInfo{};
@@ -292,26 +287,24 @@ namespace SnekVk
         fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
         fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
+        inFlightFences = Fence(MAX_FRAMES_IN_FLIGHT);
+        inFlightFences.Initialise();
+        imagesInFlight = Fence(imageCount);
+
         // Create the synchronisation objects
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
         {
             SNEK_ASSERT(
                 vkCreateSemaphore(device.Device(), &semaphoreInfo, nullptr, OUT &imageAvailableSemaphores[i]) == VK_SUCCESS &&
-                vkCreateSemaphore(device.Device(), &semaphoreInfo, nullptr, OUT &renderFinishedSemaphores[i]) == VK_SUCCESS &&
-                vkCreateFence(device.Device(), &fenceInfo, nullptr, OUT &inFlightFences[i]) == VK_SUCCESS, 
-                "Failed to create synchronization objects fora  frame!");
+                vkCreateSemaphore(device.Device(), &semaphoreInfo, nullptr, OUT &renderFinishedSemaphores[i]) == VK_SUCCESS,
+                "Failed to create synchronization objects for a frame!");
         }
     }
 
     VkResult SwapChain::AcquireNextImage(u32* imageIndex)
     {
         // Wait for the image of the current frame to become available
-        vkWaitForFences(
-            device.Device(), 
-            1, 
-            &inFlightFences[currentFrame], 
-            VK_TRUE, 
-            std::numeric_limits<u64>::max());
+        inFlightFences.WaitForFence(currentFrame);
 
         // Once available, Add it to our available images semaphor for usage
         return vkAcquireNextImageKHR(
@@ -324,18 +317,13 @@ namespace SnekVk
         ); 
     }
 
-    VkResult SwapChain::SubmitCommandBuffers(const VkCommandBuffer* buffers, u32* imageIndex)
+    VkResult SwapChain::SubmitCommandBuffers(const VkCommandBuffer* buffers, const u32&  imageIndex)
     {
-        u32 index = *imageIndex;
-
         // If the image being asked for is being used, we wait for it to become available
-        if (imagesInFlight[index] != VK_NULL_HANDLE)
-        {
-            vkWaitForFences(device.Device(), 1, &imagesInFlight[index], VK_TRUE, UINT64_MAX);
-        }
+        if (imagesInFlight.GetFence(imageIndex) != VK_NULL_HANDLE) imagesInFlight.WaitForFence(imageIndex);
 
         // Get the frame's image and move it to our images in flight
-        imagesInFlight[index] = inFlightFences[currentFrame];
+        imagesInFlight.SetFence(imageIndex, inFlightFences.GetFence(currentFrame));
 
         // With our submission, we specify a semaphore to wait on to grab data from and one to
         // signal when the rendering is complete.
@@ -363,10 +351,10 @@ namespace SnekVk
         submitInfo.pSignalSemaphores = signalSemaphores;
         
         // Reset the fence of this frame
-        vkResetFences(device.Device(), 1, OUT &inFlightFences[currentFrame]);
+        vkResetFences(device.Device(), 1, OUT &inFlightFences.GetFence(currentFrame));
 
         // Submit the command buffer to the graphics queue
-        SNEK_ASSERT(vkQueueSubmit(device.GraphicsQueue(), 1, &submitInfo, OUT inFlightFences[currentFrame]) == VK_SUCCESS,
+        SNEK_ASSERT(vkQueueSubmit(device.GraphicsQueue(), 1, &submitInfo, OUT inFlightFences.GetFence(currentFrame)) == VK_SUCCESS,
             "Failed to submit draw command buffer");
 
         // Set up our presentation information and the semaphores to wait on
@@ -383,7 +371,7 @@ namespace SnekVk
         presentInfo.pSwapchains = swapChains;
 
         // Store the image we want to render
-        presentInfo.pImageIndices = imageIndex;
+        presentInfo.pImageIndices = &imageIndex;
 
         // Submit the presentation info to the present queue.
         auto result = vkQueuePresentKHR(device.PresentQueue(), &presentInfo);
