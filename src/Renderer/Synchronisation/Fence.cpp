@@ -33,11 +33,12 @@ namespace SnekVk
         return fences[index];
     }
 
-    void Fence::Initialise() {
+    void Fence::AllocateFences() {
         auto* device = VulkanDevice::GetDeviceInstance();
 
         VkFenceCreateInfo fenceInfo{};
         fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        // create all fences in a signalled state
         fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
         for(auto& fence : fences)

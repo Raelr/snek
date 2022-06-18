@@ -230,7 +230,7 @@ namespace SnekVk
         swapChainDepthFormat = format;
         VkExtent2D swapChainExtent = GetSwapChainExtent();
 
-        // Initialise our depth image information. 
+        // AllocateFences our depth image information.
         depthImages = FrameImages(&device, format);
 
         depthImages.InitDepthImageView2D(swapChainExtent.width, swapChainExtent.height, 1);
@@ -240,7 +240,7 @@ namespace SnekVk
     {
         u32 imageCount = FrameImages::GetImageCount();
 
-        // Initialise the framebuffers storage
+        // AllocateFences the framebuffers storage
         if (swapChainFrameBuffers == nullptr) swapChainFrameBuffers = new VkFramebuffer[imageCount];
 
         // We need a separate frame buffer for each image that we want to draw
@@ -276,8 +276,6 @@ namespace SnekVk
         
         if (imageAvailableSemaphores == nullptr) imageAvailableSemaphores = new VkSemaphore[MAX_FRAMES_IN_FLIGHT];
         if (renderFinishedSemaphores == nullptr) renderFinishedSemaphores = new VkSemaphore[MAX_FRAMES_IN_FLIGHT];
-        //if (inFlightFences == nullptr) inFlightFences = new VkFence[MAX_FRAMES_IN_FLIGHT];
-        //if (imagesInFlight == nullptr) imagesInFlight = new VkFence[imageCount];
 
         // Create our semaphore and fence create info
         VkSemaphoreCreateInfo semaphoreInfo{};
@@ -288,7 +286,8 @@ namespace SnekVk
         fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
         inFlightFences = Fence(MAX_FRAMES_IN_FLIGHT);
-        inFlightFences.Initialise();
+        inFlightFences.AllocateFences();
+
         imagesInFlight = Fence(imageCount);
 
         // Create the synchronisation objects
