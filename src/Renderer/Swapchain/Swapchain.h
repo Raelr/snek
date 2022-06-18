@@ -3,6 +3,7 @@
 #include "../Device/VulkanDevice.h"
 #include "../RenderPass/RenderPass.h"
 #include "../Image/FrameImages.h"
+#include "../Synchronisation/Fence.h"
 
 namespace SnekVk
 {
@@ -133,7 +134,7 @@ namespace SnekVk
          * @param imageIndex - the index of the image being drawn. 
          * @return VkResult - the result of submitting the buffer. 
          */
-        VkResult SubmitCommandBuffers(const VkCommandBuffer* buffers, u32* imageIndex);
+        VkResult SubmitCommandBuffers(const VkCommandBuffer* buffers, const u32& imageIndex);
 
         void RecreateSwapchain();
 
@@ -252,8 +253,10 @@ namespace SnekVk
         // Synchronisation objects
         VkSemaphore* imageAvailableSemaphores {VK_NULL_HANDLE};
         VkSemaphore* renderFinishedSemaphores {VK_NULL_HANDLE};
-        VkFence* inFlightFences {VK_NULL_HANDLE};
-        VkFence* imagesInFlight {VK_NULL_HANDLE};
+        //VkFence* inFlightFences {VK_NULL_HANDLE};
+
+        Fence inFlightFences;
+        Fence imagesInFlight;
         size_t currentFrame = 0;
     };
 }
