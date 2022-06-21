@@ -5,7 +5,7 @@ namespace SnekVk
 
     RenderPass::~RenderPass()
     {
-        DestroyRenderPass();
+        //DestroyRenderPass();
     }
 
     void RenderPass::DestroyRenderPass()

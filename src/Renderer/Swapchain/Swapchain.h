@@ -3,6 +3,7 @@
 #include "../Device/VulkanDevice.h"
 #include "../RenderPass/RenderPass.h"
 #include "../Image/FrameImages.h"
+#include "../Framebuffer/Framebuffer.h"
 
 namespace SnekVk
 {
@@ -77,7 +78,7 @@ namespace SnekVk
          * is between 0 and the swapchain's max image count. 
          * @return VkFramebuffer the framebuffer in index i
          */
-        VkFramebuffer GetFrameBuffer(u32 i) { return swapChainFrameBuffers[i]; }
+        VkFramebuffer GetFrameBuffer(u32 i) { return framebuffers.GetFramebuffer(i); }
 
         /**
          * @brief Get the number of images that can be active at once. 
@@ -232,9 +233,8 @@ namespace SnekVk
         static SwapChain* instance;
 
         // frame buffers and renderpasses
-        // TODO: Refactor this into a HeapArray
-        VkFramebuffer* swapChainFrameBuffers {VK_NULL_HANDLE};
         RenderPass renderPass;
+        Framebuffer framebuffers;
 
         VkFormat swapChainImageFormat;
         VkFormat swapChainDepthFormat;
