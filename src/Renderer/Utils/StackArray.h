@@ -33,6 +33,7 @@ namespace SnekVk::Utils
         ~StackArray() {}
 
         size_t Count() { return count; }
+        size_t Count() const { return count; }
         size_t Size() { return S; }
         T* Data() { return data; }
         const T* Data() const { return data; }
